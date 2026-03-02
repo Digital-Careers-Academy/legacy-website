@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Cookie Policy — Human Legacy</title>
+  <meta name="description" content="Learn how Human Legacy uses cookies and how you can manage your preferences." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: { soft: "0 10px 30px rgba(2,6,23,.08)" }
+        }
+      }
+    }
+  </script>
+
+  <script defer src="./assets/js/script.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 scroll-smooth">
+  <div id="site-header"></div>
+
+  <!-- Toast host (keeps styling consistent with other pages) -->
+  <div id="toastHost" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-full px-4 flex flex-col items-center gap-2"></div>
+
+  <main class="mx-auto max-w-6xl px-4 py-12">
+    <!-- Page header -->
+    <div class="max-w-3xl">
+      <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-600 shadow-sm">
+        <span class="h-2 w-2 rounded-full bg-slate-900"></span>
+        Policy
+      </div>
+
+      <h1 class="mt-4 text-3xl md:text-4xl font-semibold tracking-tight">Cookie Policy</h1>
+
+      <p class="mt-3 text-slate-600 leading-7">
+        This Cookie Policy explains how <span class="font-medium text-slate-900">Human Legacy</span> uses cookies and similar
+        technologies to provide a secure, reliable, and improved experience.
+      </p>
+
+      <div class="mt-4 text-sm text-slate-500">
+        <span class="font-medium text-slate-700">Last updated:</span>
+        <time datetime="2026-02-23">February 23, 2026</time>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="mt-10 grid gap-6 lg:grid-cols-[280px_1fr]">
+      <!-- TOC -->
+      <aside class="lg:sticky lg:top-24 h-fit rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="text-sm font-semibold text-slate-900">On this page</div>
+        <nav class="mt-3 grid gap-2 text-sm">
+          <a href="#what-are-cookies" class="rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900">What are cookies?</a>
+          <a href="#how-we-use" class="rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900">How we use cookies</a>
+          <a href="#types" class="rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900">Types of cookies</a>
+          <a href="#manage" class="rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900">Managing your preferences</a>
+          <a href="#retention" class="rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900">Retention</a>
+          <a href="#contact" class="rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900">Contact</a>
+        </nav>
+
+        <div class="mt-5 border-t border-slate-200 pt-4">
+          <button
+            type="button"
+            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+            onclick="document.getElementById('cookieSettingsBtn')?.click()">
+            Cookie settings
+          </button>
+          <p class="mt-2 text-xs text-slate-500 leading-5">
+            Use settings to allow or reject non-essential cookies.
+          </p>
+        </div>
+      </aside>
+
+      <!-- Main policy card -->
+      <section class="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-soft">
+        <div class="prose prose-slate max-w-none">
+          <!-- Section 1 -->
+          <section id="what-are-cookies" class="scroll-mt-28">
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">What are cookies?</h2>
+            <p class="mt-3 text-slate-600 leading-7">
+              Cookies are small text files stored on your device when you visit a website. They help websites function properly,
+              remember preferences, and improve performance. Some cookies are set by the website you visit (“first-party cookies”),
+              and others may be set by third-party services (“third-party cookies”).
+            </p>
+          </section>
+
+          <hr class="my-8 border-slate-200" />
+
+          <!-- Section 2 -->
+          <section id="how-we-use" class="scroll-mt-28">
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">How we use cookies</h2>
+            <p class="mt-3 text-slate-600 leading-7">
+              Human Legacy uses cookies to:
+            </p>
+            <ul class="mt-3 list-disc pl-6 text-slate-600 leading-7">
+              <li><span class="font-medium text-slate-900">Keep the platform secure</span> (e.g., preventing abuse and enabling safe sessions).</li>
+              <li><span class="font-medium text-slate-900">Ensure core functionality</span> (e.g., form flows, navigation reliability).</li>
+              <li><span class="font-medium text-slate-900">Improve performance and UX</span> (e.g., understanding usage patterns if analytics is enabled).</li>
+            </ul>
+          </section>
+
+          <hr class="my-8 border-slate-200" />
+
+          <!-- Section 3 -->
+          <section id="types" class="scroll-mt-28">
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Types of cookies</h2>
+
+            <div class="mt-5 grid gap-4">
+              <div class="rounded-2xl border border-slate-200 p-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="font-semibold text-slate-900">Essential cookies (always on)</div>
+                    <p class="mt-1 text-sm text-slate-600 leading-6">
+                      These cookies are necessary for the website to function and cannot be switched off in our systems.
+                      They are typically set in response to actions you take, such as logging in or filling forms securely.
+                    </p>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-semibold ring-1 ring-emerald-200">
+                    Required
+                  </span>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 p-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="font-semibold text-slate-900">Analytics cookies (optional)</div>
+                    <p class="mt-1 text-sm text-slate-600 leading-6">
+                      These cookies help us understand how visitors use the site so we can improve performance and usability.
+                      We only set analytics cookies if you opt in.
+                    </p>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-sky-50 text-sky-700 px-3 py-1 text-xs font-semibold ring-1 ring-sky-200">
+                    Optional
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <hr class="my-8 border-slate-200" />
+
+          <!-- Section 4 -->
+          <section id="manage" class="scroll-mt-28">
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Managing your preferences</h2>
+            <p class="mt-3 text-slate-600 leading-7">
+              You can manage cookie preferences at any time. If you previously accepted optional cookies, you can change your
+              choice by opening the cookie settings panel and saving your updated preferences.
+            </p>
+
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                onclick="localStorage.removeItem('hl_cookie_consent'); location.reload();">
+                Reset cookie consent
+              </button>
+
+              <a
+                href="./contact.html"
+                class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 transition">
+                Contact support
+              </a>
+            </div>
+
+            <p class="mt-4 text-sm text-slate-500 leading-6">
+              You can also adjust cookie settings in your browser. Note that blocking essential cookies may impact functionality.
+            </p>
+          </section>
+
+          <hr class="my-8 border-slate-200" />
+
+          <!-- Section 5 -->
+          <section id="retention" class="scroll-mt-28">
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Retention</h2>
+            <p class="mt-3 text-slate-600 leading-7">
+              Cookie duration can be:
+            </p>
+            <ul class="mt-3 list-disc pl-6 text-slate-600 leading-7">
+              <li><span class="font-medium text-slate-900">Session cookies</span>: removed when you close your browser.</li>
+              <li><span class="font-medium text-slate-900">Persistent cookies</span>: remain until they expire or you delete them.</li>
+            </ul>
+            <p class="mt-3 text-slate-600 leading-7">
+              We store your cookie preference so we don’t repeatedly prompt you. You may reset consent at any time.
+            </p>
+          </section>
+
+          <hr class="my-8 border-slate-200" />
+
+          <!-- Section 6 -->
+          <section id="contact" class="scroll-mt-28">
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Contact</h2>
+            <p class="mt-3 text-slate-600 leading-7">
+              If you have questions about this Cookie Policy or your preferences, contact us:
+            </p>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="text-sm font-semibold text-slate-900">Human Legacy Support</div>
+              <div class="mt-1 text-sm text-slate-600">
+                Email:
+                <a class="font-medium text-slate-900 underline underline-offset-4" href="mailto:hello@humanlegacy.example">
+                  hello@humanlegacy.example
+                </a>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Bottom actions -->
+        <div class="mt-10 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border-t border-slate-200 pt-6">
+          <a href="./index.html" class="text-sm font-medium text-slate-700 hover:text-slate-900 underline underline-offset-4">
+            ← Back to home
+          </a>
+
+          <button
+            type="button"
+            class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 transition"
+            onclick="document.getElementById('cookieSettingsBtn')?.click()">
+            Open cookie settings
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="cookieBanner"
+  class="fixed inset-x-0 bottom-0 translate-y-full transition-transform duration-300 ease-out bg-white border-t border-slate-200 shadow-2xl z-50">
+
+  <div class="mx-auto max-w-6xl px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    
+    <div class="text-sm text-slate-600 leading-6 max-w-3xl">
+      We use essential cookies to ensure security and performance. 
+      With your permission, we may also use analytics cookies.
+      <a href="./cookie-policy.html"
+         class="font-medium text-slate-900 underline underline-offset-4">
+        Learn more
+      </a>
+    </div>
+
+    <div class="flex gap-3 flex-wrap">
+      <button id="cookieSettingsBtn"
+        class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition">
+        Settings
+      </button>
+
+      <button id="cookieReject"
+        class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition">
+        Reject
+      </button>
+
+      <button id="cookieAccept"
+        class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition">
+        Accept All
+      </button>
+    </div>
+  </div>
+</div>
+<div id="cookieModal"
+  class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+
+  <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 border border-slate-200">
+
+    <h2 class="text-xl font-semibold">Cookie Preferences</h2>
+    <p class="mt-2 text-sm text-slate-600">
+      Choose which cookies you allow.
+    </p>
+
+    <div class="mt-6 space-y-4">
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-medium text-slate-900">Essential Cookies</div>
+          <div class="text-sm text-slate-600">Required for security and functionality.</div>
+        </div>
+        <input type="checkbox" checked disabled class="h-5 w-5">
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-medium text-slate-900">Analytics Cookies</div>
+          <div class="text-sm text-slate-600">Help us improve the platform.</div>
+        </div>
+        <input id="analyticsToggle" type="checkbox" class="h-5 w-5">
+      </div>
+
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <button id="cookieModalCancel"
+        class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
+        Cancel
+      </button>
+
+      <button id="cookieModalSave"
+        class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition">
+        Save Preferences
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
