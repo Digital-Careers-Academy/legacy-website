@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Estate Intake — Human Legacy</title>
+  <meta name="description" content="Step-by-step estate intake for assets, accounts, property and documents." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { boxShadow: { soft: "0 10px 30px rgba(2,6,23,.08)" } } }
+    }
+  </script>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+  <!-- Sticky top bar -->
+  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 transition-shadow duration-300">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="h-11 w-11 rounded-2xl border border-slate-200 hover:bg-slate-50 transition grid place-items-center" aria-label="Back">
+          ←
+        </a>
+        <div>
+          <div class="text-lg font-semibold tracking-tight">Smart Estate Intake</div>
+          <div class="text-sm text-slate-500">Save progress anytime. Review and submit when ready.</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:block text-xs text-slate-500">
+          Last saved: <span id="lastSavedTop">Not yet</span>
+        </div>
+        <button id="saveBtn"
+                class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+          Save
+        </button>
+        <button id="exitBtn"
+                class="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
+          Save & exit
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Progress -->
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div id="stepTitle" class="font-semibold text-slate-900">Step 1: Overview</div>
+          <div id="stepSub" class="text-sm text-slate-500 mt-1">What you’ll provide and how we handle it.</div>
+        </div>
+        <div class="text-sm text-slate-600">
+          <span id="progressLabel" class="font-medium text-slate-900">0%</span>
+          <span class="text-slate-500">complete</span>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="h-3 rounded-full bg-slate-100 overflow-hidden">
+          <div id="progressBar" class="h-full w-0 bg-gradient-to-r from-slate-900 to-slate-700 transition-[width] duration-500"></div>
+        </div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-500">
+          <span id="progressHint">Step 1 of 6</span>
+          <span id="statusHint">Status: Draft</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stepper + content -->
+    <section class="mt-6 grid gap-6 lg:grid-cols-[240px_1fr]">
+      <!-- Stepper -->
+      <aside class="rounded-3xl border border-slate-200 bg-white p-4 shadow-soft">
+        <nav class="space-y-1" aria-label="Intake steps">
+          <button data-step="1" class="stepBtn w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition">
+            <div class="text-sm font-semibold">1. Overview</div>
+            <div class="text-xs text-slate-500">Privacy & scope</div>
+          </button>
+          <button data-step="2" class="stepBtn w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition">
+            <div class="text-sm font-semibold">2. Assets</div>
+            <div class="text-xs text-slate-500">Valuables, investments</div>
+          </button>
+          <button data-step="3" class="stepBtn w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition">
+            <div class="text-sm font-semibold">3. Accounts</div>
+            <div class="text-xs text-slate-500">Banking, digital</div>
+          </button>
+          <button data-step="4" class="stepBtn w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition">
+            <div class="text-sm font-semibold">4. Property</div>
+            <div class="text-xs text-slate-500">Homes, land</div>
+          </button>
+          <button data-step="5" class="stepBtn w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition">
+            <div class="text-sm font-semibold">5. Documents</div>
+            <div class="text-xs text-slate-500">PDF/DOCX uploads</div>
+          </button>
+          <button data-step="6" class="stepBtn w-full text-left px-3 py-2 rounded-2xl hover:bg-slate-50 transition" id="review">
+            <div class="text-sm font-semibold">6. Review & submit</div>
+            <div class="text-xs text-slate-500">Confirm details</div>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Content -->
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+        <!-- STEP 1 -->
+        <div class="stepPanel" data-panel="1">
+          <h2 class="text-xl font-semibold tracking-tight">Overview</h2>
+          <p class="mt-2 text-sm text-slate-600 leading-6">
+            This intake helps you record essential estate information: assets, accounts, property and supporting documents.
+            You can save and continue anytime.
+          </p>
+
+          <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 leading-6">
+            <div class="font-semibold text-slate-900">MVP storage note</div>
+            <p class="mt-1">
+              For this MVP, your draft is stored locally in your browser. In production, data will be encrypted in transit and at rest
+              and access-controlled for authorized legacy contacts/executors.
+            </p>
+          </div>
+
+          <div class="mt-6 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 p-4">
+              <div class="text-sm font-semibold">What you’ll add</div>
+              <ul class="mt-2 text-sm text-slate-600 space-y-1 list-disc list-inside">
+                <li>Assets (valuables, investments, vehicles)</li>
+                <li>Accounts (bank, investment, digital)</li>
+                <li>Property (homes, land, deeds)</li>
+                <li>Documents (PDF/DOCX)</li>
+              </ul>
+            </div>
+            <div class="rounded-2xl border border-slate-200 p-4">
+              <div class="text-sm font-semibold">How it works</div>
+              <ul class="mt-2 text-sm text-slate-600 space-y-1 list-disc list-inside">
+                <li>Step-by-step wizard</li>
+                <li>Inline validation</li>
+                <li>Auto-save on changes</li>
+                <li>Review & submit when ready</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Assets -->
+        <div class="stepPanel hidden" data-panel="2">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold tracking-tight">Assets</h2>
+              <p class="mt-2 text-sm text-slate-600 leading-6">Add key assets you want captured in your estate summary.</p>
+            </div>
+            <button id="addAssetBtn" class="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
+              + Add asset
+            </button>
+          </div>
+
+          <div id="assetsError" class="hidden mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"></div>
+
+          <div id="assetsList" class="mt-4 space-y-3"></div>
+        </div>
+
+        <!-- STEP 3: Accounts -->
+        <div class="stepPanel hidden" data-panel="3">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold tracking-tight">Accounts</h2>
+              <p class="mt-2 text-sm text-slate-600 leading-6">Record important financial and digital accounts.</p>
+            </div>
+            <button id="addAccountBtn" class="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
+              + Add account
+            </button>
+          </div>
+
+          <div id="accountsError" class="hidden mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"></div>
+
+          <div id="accountsList" class="mt-4 space-y-3"></div>
+        </div>
+
+        <!-- STEP 4: Property -->
+        <div class="stepPanel hidden" data-panel="4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold tracking-tight">Property</h2>
+              <p class="mt-2 text-sm text-slate-600 leading-6">Add property details (homes, land, title references).</p>
+            </div>
+            <button id="addPropertyBtn" class="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
+              + Add property
+            </button>
+          </div>
+
+          <div id="propertiesError" class="hidden mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"></div>
+
+          <div id="propertiesList" class="mt-4 space-y-3"></div>
+        </div>
+
+        <!-- STEP 5: Documents -->
+        <div class="stepPanel hidden" data-panel="5">
+          <h2 class="text-xl font-semibold tracking-tight">Documents</h2>
+          <p class="mt-2 text-sm text-slate-600 leading-6">
+            Upload supporting documents (PDF/DOCX). MVP stores files locally in this browser.
+          </p>
+
+          <div class="mt-4 rounded-2xl border border-slate-200 p-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <div class="text-sm font-semibold">Upload files</div>
+                <div class="text-xs text-slate-500">Accepted: PDF, DOC, DOCX</div>
+              </div>
+              <label class="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition cursor-pointer">
+                Select files
+                <input id="docInput" type="file" class="hidden" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple />
+              </label>
+            </div>
+
+            <div id="docsError" class="hidden mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
+            <div id="docsWarn" class="hidden mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"></div>
+
+            <div id="docsList" class="mt-4 space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- STEP 6: Review -->
+        <div class="stepPanel hidden" data-panel="6">
+          <h2 class="text-xl font-semibold tracking-tight">Review & submit</h2>
+          <p class="mt-2 text-sm text-slate-600 leading-6">
+            Confirm your entries. Submitting locks this version (MVP). You can still create a new draft later.
+          </p>
+
+          <div id="reviewBox" class="mt-4 grid gap-4 sm:grid-cols-2"></div>
+
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button id="submitBtn" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 transition">
+              Submit estate intake
+            </button>
+            <button id="unlockBtn" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition hidden">
+              Create new version
+            </button>
+          </div>
+
+          <p class="mt-4 text-xs text-slate-500 leading-5">
+            Security note: True “authorized executor access” requires backend authentication + encryption key management.
+            This MVP focuses on UX and data structure.
+          </p>
+        </div>
+
+        <!-- Footer nav -->
+        <div class="mt-8 flex items-center justify-between gap-3">
+          <button id="prevBtn" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+            ← Back
+          </button>
+          <button id="nextBtn" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 transition">
+            Continue →
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast host -->
+  <div id="toastHost" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-full px-4 flex flex-col items-center gap-2"></div>
+
+  <script>
+    // --------- Estate Intake Wizard (LocalStorage MVP) ----------
+    const ESTATE_KEY = "hl_estate_intake_v1";
+
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function readJSON(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+      catch { return fallback; }
+    }
+    function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+    function nowISO() { return new Date().toISOString(); }
+
+    function toast(title, msg) {
+      const host = $("#toastHost");
+      const el = document.createElement("div");
+      el.className = "w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-lg px-4 py-3 flex gap-3 items-start animate-[slideUp_.18s_ease-out]";
+      el.innerHTML = `
+        <div class="mt-0.5 h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 grid place-items-center ring-1 ring-emerald-200">✓</div>
+        <div class="flex-1">
+          <div class="font-semibold text-slate-900">${escapeHtml(title)}</div>
+          <div class="text-sm text-slate-600 leading-6">${escapeHtml(msg)}</div>
+        </div>
+        <button class="h-9 w-9 rounded-xl hover:bg-slate-50 transition grid place-items-center" aria-label="Close">✕</button>
+      `;
+      el.querySelector("button").addEventListener("click", () => el.remove());
+      host.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    const style = document.createElement("style");
+    style.textContent = `@keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}`;
+    document.head.appendChild(style);
+
+    function defaultDraft() {
+      return {
+        meta: { status: "draft", lastSavedAt: null, submittedAt: null },
+        ui: { currentStep: 1 },
+        assets: [],
+        accounts: [],
+        properties: [],
+        documents: [], // {id,name,mime,size,dataUrl,uploadedAt}
+      };
+    }
+
+    let draft = readJSON(ESTATE_KEY, defaultDraft());
+
+    function saveDraft(silent = false) {
+      draft.meta.lastSavedAt = nowISO();
+      writeJSON(ESTATE_KEY, draft);
+      $("#lastSavedTop").textContent = formatNiceDate(draft.meta.lastSavedAt);
+      if (!silent) toast("Saved", "Your progress has been saved.");
+    }
+
+    function formatNiceDate(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+      } catch { return "Recently"; }
+    }
+
+    function setStep(step) {
+      draft.ui.currentStep = step;
+      writeDraftSoft();
+      render();
+      // update URL anchor
+      history.replaceState(null, "", `#step-${step}`);
+    }
+
+    function writeDraftSoft() {
+      // silent autosave, no toast
+      draft.meta.lastSavedAt = nowISO();
+      writeJSON(ESTATE_KEY, draft);
+      $("#lastSavedTop").textContent = formatNiceDate(draft.meta.lastSavedAt);
+    }
+
+    function computeProgress() {
+      // 6 steps; completion is pragmatic:
+      // step2 complete if any assets OR user can intentionally leave empty (we enforce at least one item for MVP)
+      const s2 = draft.assets.length > 0;
+      const s3 = draft.accounts.length > 0;
+      const s4 = draft.properties.length > 0;
+      const s5 = draft.documents.length > 0;
+      const s6 = draft.meta.status === "submitted";
+
+      let score = 1; // overview
+      if (s2) score++;
+      if (s3) score++;
+      if (s4) score++;
+      if (s5) score++;
+      if (s6) score++;
+
+      return { percent: Math.round((score / 6) * 100), score };
+    }
+
+    function lockIfSubmitted() {
+      const locked = draft.meta.status === "submitted";
+      // Disable adds & inputs if submitted
+      ["addAssetBtn","addAccountBtn","addPropertyBtn","docInput","saveBtn","nextBtn","prevBtn","exitBtn"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (id === "prevBtn" || id === "exitBtn") return; // allow navigation/exit
+        el.disabled = locked;
+        el.classList.toggle("opacity-60", locked);
+        el.classList.toggle("cursor-not-allowed", locked);
+      });
+
+      $("#submitBtn") && ($("#submitBtn").disabled = locked);
+      $("#submitBtn")?.classList.toggle("opacity-60", locked);
+      $("#unlockBtn")?.classList.toggle("hidden", !locked);
+      $("#statusHint").textContent = `Status: ${locked ? "Submitted" : "Draft"}`;
+    }
+
+    // ---- Validation per step (MVP) ----
+    function validateStep(step) {
+      clearErrors();
+      if (draft.meta.status === "submitted") return true;
+
+      if (step === 2 && draft.assets.length === 0) {
+        showError("assetsError", "Please add at least one asset to continue.");
+        return false;
+      }
+      if (step === 3 && draft.accounts.length === 0) {
+        showError("accountsError", "Please add at least one account to continue.");
+        return false;
+      }
+      if (step === 4 && draft.properties.length === 0) {
+        showError("propertiesError", "Please add at least one property to continue.");
+        return false;
+      }
+      // documents optional for MVP; keep optional
+      return true;
+    }
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+
+    function clearErrors() {
+      ["assetsError","accountsError","propertiesError","docsError","docsWarn"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.add("hidden"); el.textContent = ""; }
+      });
+    }
+
+    // ---- Render lists ----
+    function hint(label, text) {
+      return `
+        <span class="relative inline-flex items-center gap-1">
+          <span class="text-xs text-slate-500">${escapeHtml(label)}</span>
+          <span class="group inline-flex items-center justify-center h-5 w-5 rounded-full border border-slate-200 bg-white text-slate-600 text-[11px] cursor-help" tabindex="0" aria-label="Hint">
+            i
+            <span class="pointer-events-none absolute z-10 hidden group-hover:block group-focus:block top-6 left-0 w-64 rounded-2xl border border-slate-200 bg-white shadow-soft p-3 text-xs text-slate-600 leading-5">
+              ${escapeHtml(text)}
+            </span>
+          </span>
+        </span>
+      `;
+    }
+
+    function cardRow({ title, subtitle, onEditId, onRemoveId }) {
+      return `
+        <div class="rounded-2xl border border-slate-200 p-4 hover:bg-slate-50 transition">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold text-slate-900">${escapeHtml(title)}</div>
+              <div class="text-sm text-slate-600 mt-1">${escapeHtml(subtitle)}</div>
+            </div>
+            <div class="flex gap-2">
+              <button data-edit="${onEditId}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-white transition text-sm">Edit</button>
+              <button data-remove="${onRemoveId}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-white transition text-sm">Remove</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAssets() {
+      const host = $("#assetsList");
+      host.innerHTML = "";
+      draft.assets.forEach((a) => {
+        host.insertAdjacentHTML("beforeend", cardRow({
+          title: `${a.name} • ${a.category}`,
+          subtitle: `${a.currency || "—"} ${a.value || ""}${a.notes ? " • " + a.notes : ""}`,
+          onEditId: `asset:${a.id}`,
+          onRemoveId: `asset:${a.id}`,
+        }));
+      });
+      host.addEventListener("click", onListClick);
+    }
+
+    function renderAccounts() {
+      const host = $("#accountsList");
+      host.innerHTML = "";
+      draft.accounts.forEach((a) => {
+        const last4 = a.last4 ? `•••• ${a.last4}` : "No last-4";
+        host.insertAdjacentHTML("beforeend", cardRow({
+          title: `${a.institution} • ${a.accountType}`,
+          subtitle: `${last4}${a.notes ? " • " + a.notes : ""}`,
+          onEditId: `account:${a.id}`,
+          onRemoveId: `account:${a.id}`,
+        }));
+      });
+      host.addEventListener("click", onListClick);
+    }
+
+    function renderProperties() {
+      const host = $("#propertiesList");
+      host.innerHTML = "";
+      draft.properties.forEach((p) => {
+        host.insertAdjacentHTML("beforeend", cardRow({
+          title: `${p.type} • ${p.country}`,
+          subtitle: `${p.address}${p.titleDeedRef ? " • Deed: " + p.titleDeedRef : ""}`,
+          onEditId: `property:${p.id}`,
+          onRemoveId: `property:${p.id}`,
+        }));
+      });
+      host.addEventListener("click", onListClick);
+    }
+
+    function renderDocs() {
+      const host = $("#docsList");
+      host.innerHTML = "";
+      draft.documents.forEach((d) => {
+        host.insertAdjacentHTML("beforeend", `
+          <div class="rounded-2xl border border-slate-200 p-4 flex items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold text-slate-900">${escapeHtml(d.name)}</div>
+              <div class="text-sm text-slate-600 mt-1">
+                ${(d.size/1024).toFixed(1)} KB • ${escapeHtml(d.mime)} • ${formatNiceDate(d.uploadedAt)}
+              </div>
+            </div>
+            <button data-remove="doc:${d.id}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-sm">Remove</button>
+          </div>
+        `);
+      });
+      host.addEventListener("click", onListClick);
+    }
+
+    function renderReview() {
+      const box = $("#reviewBox");
+      const { percent } = computeProgress();
+      box.innerHTML = `
+        <div class="rounded-2xl border border-slate-200 p-4">
+          <div class="text-sm text-slate-500">Assets</div>
+          <div class="mt-1 text-2xl font-semibold">${draft.assets.length}</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 p-4">
+          <div class="text-sm text-slate-500">Accounts</div>
+          <div class="mt-1 text-2xl font-semibold">${draft.accounts.length}</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 p-4">
+          <div class="text-sm text-slate-500">Properties</div>
+          <div class="mt-1 text-2xl font-semibold">${draft.properties.length}</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 p-4">
+          <div class="text-sm text-slate-500">Documents</div>
+          <div class="mt-1 text-2xl font-semibold">${draft.documents.length}</div>
+        </div>
+        <div class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 leading-6">
+          <div class="font-semibold text-slate-900">Completion</div>
+          <div class="mt-1">${percent}% complete. You can submit now, or continue improving accuracy.</div>
+        </div>
+      `;
+    }
+
+    function render() {
+      // panels
+      const step = draft.ui.currentStep || 1;
+      $$(".stepPanel").forEach((p) => p.classList.add("hidden"));
+      $(`.stepPanel[data-panel="${step}"]`)?.classList.remove("hidden");
+
+      // stepper highlight
+      $$(".stepBtn").forEach((b) => {
+        const s = Number(b.getAttribute("data-step"));
+        const active = s === step;
+        b.classList.toggle("bg-slate-900", active);
+        b.classList.toggle("text-white", active);
+        b.classList.toggle("hover:bg-slate-50", !active);
+      });
+
+      const titles = {
+        1: ["Step 1: Overview", "What you’ll provide and how we handle it."],
+        2: ["Step 2: Assets", "Add valuables, investments, or other major assets."],
+        3: ["Step 3: Accounts", "Record financial and digital accounts."],
+        4: ["Step 4: Property", "Capture property details and references."],
+        5: ["Step 5: Documents", "Upload PDFs/DOCX supporting your entries."],
+        6: ["Step 6: Review & submit", "Confirm and submit your intake."],
+      };
+      $("#stepTitle").textContent = titles[step][0];
+      $("#stepSub").textContent = titles[step][1];
+
+      // progress
+      const { percent } = computeProgress();
+      $("#progressBar").style.width = `${percent}%`;
+      $("#progressLabel").textContent = `${percent}%`;
+      $("#progressHint").textContent = `Step ${step} of 6`;
+
+      $("#lastSavedTop").textContent = draft.meta.lastSavedAt ? formatNiceDate(draft.meta.lastSavedAt) : "Not yet";
+
+      // render lists
+      if (step === 2) renderAssets();
+      if (step === 3) renderAccounts();
+      if (step === 4) renderProperties();
+      if (step === 5) renderDocs();
+      if (step === 6) renderReview();
+
+      lockIfSubmitted();
+    }
+
+    // ---- CRUD Modals (simple prompt-based for MVP; upgrade to real modal later) ----
+    function addAsset() {
+      const name = prompt("Asset name (required):");
+      if (!name) return;
+      const category = prompt("Category (e.g., Vehicle, Investment) (required):");
+      if (!category) return;
+      const value = prompt("Estimated value (optional):") || "";
+      const currency = prompt("Currency (e.g., USD, NGN, GBP) (optional):") || "";
+      const notes = prompt("Notes (optional):") || "";
+
+      draft.assets.push({ id: crypto.randomUUID(), name, category, value, currency, notes, updatedAt: nowISO() });
+      writeDraftSoft();
+      render();
+    }
+
+    function addAccount() {
+      const institution = prompt("Institution (required):");
+      if (!institution) return;
+      const accountType = prompt("Account type (required):");
+      if (!accountType) return;
+      const last4 = prompt("Last 4 digits (optional):") || "";
+      const notes = prompt("Notes (optional):") || "";
+
+      draft.accounts.push({ id: crypto.randomUUID(), institution, accountType, last4, notes, updatedAt: nowISO() });
+      writeDraftSoft();
+      render();
+    }
+
+    function addProperty() {
+      const type = prompt("Property type (required):");
+      if (!type) return;
+      const address = prompt("Address (required):");
+      if (!address) return;
+      const country = prompt("Country (required):");
+      if (!country) return;
+      const titleDeedRef = prompt("Title deed reference (optional):") || "";
+      const notes = prompt("Notes (optional):") || "";
+
+      draft.properties.push({ id: crypto.randomUUID(), type, address, country, titleDeedRef, notes, updatedAt: nowISO() });
+      writeDraftSoft();
+      render();
+    }
+
+    function onListClick(e) {
+      const btnRemove = e.target.closest("[data-remove]");
+      if (btnRemove) {
+        const key = btnRemove.getAttribute("data-remove");
+        const [type, id] = key.split(":");
+        if (!confirm("Remove this item?")) return;
+
+        if (type === "asset") draft.assets = draft.assets.filter((x) => x.id !== id);
+        if (type === "account") draft.accounts = draft.accounts.filter((x) => x.id !== id);
+        if (type === "property") draft.properties = draft.properties.filter((x) => x.id !== id);
+        if (type === "doc") draft.documents = draft.documents.filter((x) => x.id !== id);
+
+        writeDraftSoft();
+        render();
+      }
+    }
+
+    // ---- Documents upload ----
+    const MAX_TOTAL_BYTES = 3.5 * 1024 * 1024; // ~3.5MB guardrail for localStorage safety
+
+    function totalDocBytes() {
+      return (draft.documents || []).reduce((sum, d) => sum + (d.size || 0), 0);
+    }
+
+    async function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result));
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    $("#docInput")?.addEventListener("change", async (e) => {
+      clearErrors();
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+
+      for (const file of files) {
+        const okTypes = [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ];
+        const extOk = /\.(pdf|doc|docx)$/i.test(file.name);
+
+        if (!okTypes.includes(file.type) && !extOk) {
+          showError("docsError", "Only PDF/DOC/DOCX files are allowed.");
+          continue;
+        }
+
+        const nextTotal = totalDocBytes() + file.size;
+        if (nextTotal > MAX_TOTAL_BYTES) {
+          const warn = $("#docsWarn");
+          warn.textContent = "Storage limit warning: this MVP stores files locally. Please upload fewer/smaller documents.";
+          warn.classList.remove("hidden");
+          break;
+        }
+
+        const dataUrl = await fileToDataUrl(file);
+        draft.documents.push({
+          id: crypto.randomUUID(),
+          name: file.name,
+          mime: file.type || "application/octet-stream",
+          size: file.size,
+          dataUrl,
+          uploadedAt: nowISO(),
+        });
+
+        writeDraftSoft();
+      }
+
+      e.target.value = "";
+      render();
+      toast("Uploaded", "Document(s) added to your intake.");
+    });
+
+    // ---- Nav buttons ----
+    $("#prevBtn").addEventListener("click", () => {
+      const step = draft.ui.currentStep || 1;
+      if (step > 1) setStep(step - 1);
+    });
+
+    $("#nextBtn").addEventListener("click", () => {
+      const step = draft.ui.currentStep || 1;
+      if (!validateStep(step)) return;
+      if (step < 6) setStep(step + 1);
+    });
+
+    $$(".stepBtn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const step = Number(btn.getAttribute("data-step"));
+        // allow jump, but validate current step before leaving forward
+        const current = draft.ui.currentStep || 1;
+        if (step > current && !validateStep(current)) return;
+        setStep(step);
+      });
+    });
+
+    // Buttons
+    $("#addAssetBtn")?.addEventListener("click", addAsset);
+    $("#addAccountBtn")?.addEventListener("click", addAccount);
+    $("#addPropertyBtn")?.addEventListener("click", addProperty);
+
+    $("#saveBtn")?.addEventListener("click", () => saveDraft(false));
+    $("#exitBtn")?.addEventListener("click", () => {
+      saveDraft(true);
+      toast("Saved", "Returning to dashboard…");
+      setTimeout(() => (window.location.href = "index.html"), 450);
+    });
+
+    $("#submitBtn")?.addEventListener("click", () => {
+      // Final validations
+      if (draft.assets.length === 0 || draft.accounts.length === 0 || draft.properties.length === 0) {
+        toast("Missing information", "Please add at least one item in Assets, Accounts, and Property before submitting.");
+        return;
+      }
+      if (!confirm("Submit estate intake? This will lock this version in MVP.")) return;
+      draft.meta.status = "submitted";
+      draft.meta.submittedAt = nowISO();
+      writeDraftSoft();
+      render();
+      toast("Submitted", "Your estate intake has been submitted (MVP).");
+    });
+
+    $("#unlockBtn")?.addEventListener("click", () => {
+      if (!confirm("Create a new editable version? This will duplicate your submitted version as a new draft.")) return;
+      const clone = structuredClone(draft);
+      clone.meta.status = "draft";
+      clone.meta.submittedAt = null;
+      clone.meta.lastSavedAt = nowISO();
+      // keep current step
+      writeJSON(ESTATE_KEY, clone);
+      draft = clone;
+      render();
+      toast("New version created", "You can now edit and resubmit.");
+    });
+
+    // Anchor start step
+    (function initFromHash() {
+      const hash = location.hash || "";
+      const m = hash.match(/step-(\d+)/);
+      const step = m ? Number(m[1]) : (draft.ui.currentStep || 1);
+      draft.ui.currentStep = Math.min(Math.max(step, 1), 6);
+      render();
+    })();
+
+    // Auto-save debounce for future inline inputs (if you replace prompts with real forms)
+    // For now, prompts + upload already save.
+  </script>
+</body>
+</html>

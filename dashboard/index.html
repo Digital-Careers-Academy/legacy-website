@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Human Legacy</title>
+  <meta name="description" content="Manage your legacy vault, trusted contacts, and transition plan." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { boxShadow: { soft: "0 10px 30px rgba(2,6,23,.08)" } } } }
+  </script>
+
+  <script defer src="../assets/js/dashboard.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+  <!-- Mobile backdrop + drawer -->
+  <div id="drawerBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden"></div>
+
+  <div id="mobileDrawer"
+       class="fixed inset-y-0 left-0 z-50 w-[300px] bg-white border-r border-slate-200 -translate-x-full transition-transform duration-300">
+    <div class="p-4 flex items-center justify-between border-b border-slate-200">
+      <div class="flex items-center gap-3">
+        <img src="../assets/images/logo.png" alt="Human Legacy" class="h-9 w-auto" />
+        <div class="leading-tight">
+          <div class="font-semibold">Human Legacy</div>
+          <div class="text-xs text-slate-500">Your legacy. Protected.</div>
+        </div>
+      </div>
+      <button id="closeDrawer" class="h-10 w-10 rounded-xl hover:bg-slate-50 transition grid place-items-center" aria-label="Close">
+        ✕
+      </button>
+    </div>
+
+    <nav class="p-3 space-y-1">
+      <a data-nav href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+        <span>📊</span> Dashboard
+      </a>
+      <a data-nav href="vault.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+        <span>🔒</span> Vault
+      </a>
+      <a data-nav href="contacts.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+        <span>👥</span> Contacts
+      </a>
+      <a data-nav href="transition-plan.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+        <span>🧭</span> Transition Plan
+      </a>
+      <a data-nav href="memory-capsule.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+        <span>✉️</span> Memory Capsule
+      </a>
+      <a data-nav href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+        <span>⚙️</span> Settings
+      </a>
+    </nav>
+  </div>
+
+  <div class="min-h-screen flex">
+    <!-- Desktop sidebar -->
+    <aside class="hidden lg:flex lg:flex-col w-[280px] bg-white border-r border-slate-200">
+      <div class="p-6">
+        <div class="flex items-center gap-3">
+          <img src="../assets/images/logo.png" alt="Human Legacy" class="h-10 w-auto" />
+          <div class="leading-tight">
+            <div class="font-semibold text-slate-900">Human Legacy</div>
+            <div class="text-xs text-slate-500">Your legacy. Protected.</div>
+          </div>
+        </div>
+
+        <div id="autosaveChip"
+             class="mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 transition">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          Auto-save enabled
+        </div>
+      </div>
+
+      <nav class="px-3 pb-6 space-y-1">
+        <a data-nav href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+          <span>📊</span> Dashboard
+        </a>
+        <a data-nav href="vault.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+          <span>🔒</span> Vault
+        </a>
+        <a data-nav href="contacts.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+          <span>👥</span> Contacts
+        </a>
+        <a data-nav href="transition-plan.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+          <span>🧭</span> Transition Plan
+        </a>
+        <a data-nav href="memory-capsule.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+          <span>✉️</span> Memory Capsule
+        </a>
+        <a data-nav href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-xl font-medium">
+          <span>⚙️</span> Settings
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4 border-t border-slate-200 text-xs text-slate-500">
+        © <span id="year"></span> Human Legacy • MVP
+        <script>document.getElementById("year").textContent = String(new Date().getFullYear());</script>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1">
+      <!-- Sticky Top Header -->
+      <header id="topHeader" class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 transition-shadow duration-300">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <button id="openDrawer"
+                    class="lg:hidden h-11 w-11 rounded-2xl border border-slate-200 hover:bg-slate-50 transition grid place-items-center"
+                    aria-label="Open menu">
+              ☰
+            </button>
+            <div>
+              <div id="welcomeName" class="text-lg font-semibold tracking-tight">Welcome back</div>
+              <div class="text-sm text-slate-500">Here’s what’s happening with your legacy setup.</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Notification -->
+            <div class="relative">
+              <button id="notifBtn"
+                      class="h-11 w-11 rounded-2xl border border-slate-200 hover:bg-slate-50 transition grid place-items-center"
+                      aria-label="Notifications">
+                🔔
+              </button>
+              <span id="notifCount"
+                    class="absolute -top-1 -right-1 min-w-6 h-6 px-1 rounded-full bg-amber-400 text-slate-900 text-xs font-semibold grid place-items-center">
+                0
+              </span>
+
+              <!-- Panel -->
+              <div id="notifPanel"
+                   class="hidden absolute right-0 mt-2 w-[340px] rounded-3xl border border-slate-200 bg-white shadow-soft p-2">
+                <div class="px-3 py-2 flex items-center justify-between">
+                  <div class="font-semibold text-slate-900">Notifications</div>
+                  <button id="markAllRead" class="text-sm font-medium text-slate-700 hover:text-slate-900 underline underline-offset-4">
+                    Mark all read
+                  </button>
+                </div>
+                <div class="h-px bg-slate-200 my-1"></div>
+                <div id="notifList" class="p-2 space-y-1 max-h-[340px] overflow-auto"></div>
+              </div>
+            </div>
+
+            <a href="vault.html"
+               class="hidden sm:inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-white font-medium hover:bg-slate-800 transition">
+              Open Vault →
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- KPIs -->
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+            <div class="text-sm text-slate-500">Vault items</div>
+            <div id="kpiVault" class="mt-2 text-3xl font-semibold tracking-tight">0</div>
+          </div>
+          <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+            <div class="text-sm text-slate-500">Trusted contacts</div>
+            <div id="kpiContacts" class="mt-2 text-3xl font-semibold tracking-tight">0</div>
+          </div>
+          <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+            <div class="text-sm text-slate-500">Memory capsules</div>
+            <div id="kpiCapsules" class="mt-2 text-3xl font-semibold tracking-tight">0</div>
+          </div>
+          <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+            <div class="text-sm text-slate-500">Plan progress</div>
+            <div id="kpiProgress" class="mt-2 text-3xl font-semibold tracking-tight">0%</div>
+          </div>
+        </section>
+
+        <!-- Journey Progress -->
+      <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+    <div>
+      <div class="font-semibold text-slate-900 text-lg">Smart Estate Intake</div>
+      <div class="text-sm text-slate-500">
+        Capture assets, accounts, property, and documents—step-by-step. Save progress anytime.
+      </div>
+    </div>
+    <div class="text-sm text-slate-500">
+      Last saved: <span id="estateLastSaved">Not yet</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="mt-4">
+    <div class="flex items-center justify-between text-sm">
+      <span id="estateProgressLabel" class="font-medium text-slate-900">0% complete</span>
+      <span id="estateProgressHint" class="text-slate-500">Step 1 of 6</span>
+    </div>
+    <div class="mt-2 h-3 rounded-full bg-slate-100 overflow-hidden">
+      <div id="estateProgressBar"
+           class="h-full w-0 bg-gradient-to-r from-slate-900 to-slate-700 transition-[width] duration-500"></div>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div class="text-xs text-slate-500">Assets</div>
+      <div id="estateAssetsCount" class="mt-1 text-2xl font-semibold tracking-tight">0</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div class="text-xs text-slate-500">Accounts</div>
+      <div id="estateAccountsCount" class="mt-1 text-2xl font-semibold tracking-tight">0</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div class="text-xs text-slate-500">Properties</div>
+      <div id="estatePropertiesCount" class="mt-1 text-2xl font-semibold tracking-tight">0</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div class="text-xs text-slate-500">Documents</div>
+      <div id="estateDocsCount" class="mt-1 text-2xl font-semibold tracking-tight">0</div>
+    </div>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-3">
+    <a id="estateResumeBtn"
+       href="estate-intake.html"
+       class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 transition">
+      Start intake →
+    </a>
+
+    <a href="estate-intake.html#review"
+       class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+      View summary
+    </a>
+
+    <button id="estateResetBtn"
+            class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+      Reset intake
+    </button>
+  </div>
+</section>
+
+        <!-- Modules Grid (like sample cards but modern) -->
+        <section class="mt-6 grid gap-4 md:grid-cols-2">
+          <a href="vault.html"
+             class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-soft hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-sm text-slate-500">Module</div>
+                <h3 class="mt-1 text-lg font-semibold">Legacy Vault</h3>
+                <p class="mt-2 text-sm text-slate-600 leading-6">
+                  Store documents, notes, and instructions with an audit-friendly timeline.
+                </p>
+              </div>
+              <div class="h-11 w-11 rounded-2xl bg-slate-50 border border-slate-200 grid place-items-center group-hover:bg-slate-100 transition">
+                🔒
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-500">In progress • Last updated today</div>
+          </a>
+
+          <a href="contacts.html"
+             class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-soft hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-sm text-slate-500">Module</div>
+                <h3 class="mt-1 text-lg font-semibold">Trusted Contacts</h3>
+                <p class="mt-2 text-sm text-slate-600 leading-6">
+                  Assign guardians and trusted recipients, track confirmation, and reduce confusion.
+                </p>
+              </div>
+              <div class="h-11 w-11 rounded-2xl bg-slate-50 border border-slate-200 grid place-items-center group-hover:bg-slate-100 transition">
+                👥
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-500">Manage roles & confirmations</div>
+          </a>
+
+          <a href="transition-plan.html"
+             class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-soft hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-sm text-slate-500">Module</div>
+                <h3 class="mt-1 text-lg font-semibold">Transition Plan</h3>
+                <p class="mt-2 text-sm text-slate-600 leading-6">
+                  Define steps that guide others respectfully when the time comes.
+                </p>
+              </div>
+              <div class="h-11 w-11 rounded-2xl bg-slate-50 border border-slate-200 grid place-items-center group-hover:bg-slate-100 transition">
+                🧭
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-500">Track completion • reduce gaps</div>
+          </a>
+
+          <a href="memory-capsule.html"
+             class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-soft hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-sm text-slate-500">Module</div>
+                <h3 class="mt-1 text-lg font-semibold">Memory Capsule</h3>
+                <p class="mt-2 text-sm text-slate-600 leading-6">
+                  Record meaningful messages. Save drafts securely as you write.
+                </p>
+              </div>
+              <div class="h-11 w-11 rounded-2xl bg-slate-50 border border-slate-200 grid place-items-center group-hover:bg-slate-100 transition">
+                ✉️
+              </div>
+            </div>
+            <div class="mt-4 text-sm text-slate-500">Write • review • save</div>
+          </a>
+        </section>
+      </main>
+
+      <!-- Toast host -->
+      <div id="toastHost" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-full px-4 flex flex-col items-center gap-2"></div>
+    </div>
+  </div>
+</body>
+</html>
