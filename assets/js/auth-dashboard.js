@@ -9,7 +9,7 @@ function requireDashboardAuth() {
   const user = getCurrentUser();
   if (!user) {
     sessionStorage.setItem("hl_redirect_after_login", window.location.href);
-    window.location.href = "/login.html";
+    window.location.href = "/legacy-website/login.html";
     return false;
   }
   return true;
@@ -35,7 +35,7 @@ function bindLogout() {
   btn.addEventListener("click", (e) => {
     e.preventDefault();
     logoutUser();
-    window.location.href = "/login.html";
+    window.location.href = "/legacy-website/login.html";
   });
 }
 
