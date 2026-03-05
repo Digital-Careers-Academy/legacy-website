@@ -235,11 +235,6 @@
               Create new version
             </button>
           </div>
-
-          <p class="mt-4 text-xs text-slate-500 leading-5">
-            Security note: True “authorized executor access” requires backend authentication + encryption key management.
-            This MVP focuses on UX and data structure.
-          </p>
         </div>
 
         <!-- Footer nav -->
@@ -257,522 +252,1153 @@
 
   <!-- Toast host -->
   <div id="toastHost" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-full px-4 flex flex-col items-center gap-2"></div>
+<!-- Reusable Modal -->
+<div id="modalOverlay" class="fixed inset-0 z-[200] hidden">
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-200" id="modalBackdrop"></div>
 
-  <script>
-    // --------- Estate Intake Wizard (LocalStorage MVP) ----------
-    const ESTATE_KEY = "hl_estate_intake_v1";
-
-    const $ = (sel, root = document) => root.querySelector(sel);
-    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function readJSON(key, fallback) {
-      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-      catch { return fallback; }
-    }
-    function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-    function nowISO() { return new Date().toISOString(); }
-
-    function toast(title, msg) {
-      const host = $("#toastHost");
-      const el = document.createElement("div");
-      el.className = "w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-lg px-4 py-3 flex gap-3 items-start animate-[slideUp_.18s_ease-out]";
-      el.innerHTML = `
-        <div class="mt-0.5 h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 grid place-items-center ring-1 ring-emerald-200">✓</div>
-        <div class="flex-1">
-          <div class="font-semibold text-slate-900">${escapeHtml(title)}</div>
-          <div class="text-sm text-slate-600 leading-6">${escapeHtml(msg)}</div>
+  <div class="relative mx-auto flex min-h-full max-w-2xl items-end sm:items-center px-4 py-6">
+    <div
+      id="modalPanel"
+      class="w-full translate-y-4 opacity-0 transition-all duration-200
+             rounded-3xl border border-slate-200 bg-white shadow-2xl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+    >
+      <div class="flex items-start justify-between gap-4 p-5 sm:p-6 border-b border-slate-100">
+        <div>
+          <div id="modalTitle" class="text-lg font-semibold text-slate-900">Modal title</div>
+          <div id="modalSubtitle" class="mt-1 text-sm text-slate-500">Modal subtitle</div>
         </div>
-        <button class="h-9 w-9 rounded-xl hover:bg-slate-50 transition grid place-items-center" aria-label="Close">✕</button>
-      `;
-      el.querySelector("button").addEventListener("click", () => el.remove());
-      host.appendChild(el);
-      setTimeout(() => el.remove(), 3500);
+        <button id="modalCloseBtn"
+                class="h-10 w-10 grid place-items-center rounded-2xl hover:bg-slate-50 transition"
+                aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 sm:p-6">
+        <div id="modalBody"></div>
+        <div id="modalError"
+             class="hidden mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 p-5 sm:p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl">
+        <button id="modalSecondaryBtn"
+                class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+          Cancel
+        </button>
+        <button id="modalPrimaryBtn"
+                class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 transition">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div id="confirmOverlay" class="fixed inset-0 z-[210] hidden">
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-200" id="confirmBackdrop"></div>
+
+  <div class="relative mx-auto flex min-h-full max-w-lg items-end sm:items-center px-4 py-6">
+    <div
+      id="confirmPanel"
+      class="w-full translate-y-4 opacity-0 transition-all duration-200
+             rounded-3xl border border-slate-200 bg-white shadow-2xl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmTitle"
+    >
+      <div class="p-5 sm:p-6">
+        <div class="flex items-start gap-3">
+          <div class="h-10 w-10 rounded-2xl bg-rose-50 text-rose-700 ring-1 ring-rose-200 grid place-items-center">!</div>
+          <div class="flex-1">
+            <div id="confirmTitle" class="text-lg font-semibold text-slate-900">Confirm delete</div>
+            <div id="confirmText" class="mt-1 text-sm text-slate-600 leading-6">Are you sure?</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 p-5 sm:p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl">
+        <button id="confirmCancelBtn"
+                class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+          Cancel
+        </button>
+        <button id="confirmDeleteBtn"
+                class="rounded-2xl bg-rose-600 px-5 py-3 text-sm font-medium text-white hover:bg-rose-500 transition">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // --------- Estate Intake Wizard (LocalStorage MVP) ----------
+  const ESTATE_KEY = "hl_estate_intake_v1";
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function readJSON(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+    catch { return fallback; }
+  }
+  function writeJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+  function nowISO() { return new Date().toISOString(); }
+
+  function formatNiceDate(iso) {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+    } catch { return "Recently"; }
+  }
+
+  // ---------- Toast ----------
+  function toast(title, msg) {
+    const host = $("#toastHost");
+    const el = document.createElement("div");
+    el.className =
+      "w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-lg px-4 py-3 flex gap-3 items-start animate-[slideUp_.18s_ease-out]";
+    el.innerHTML = `
+      <div class="mt-0.5 h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 grid place-items-center ring-1 ring-emerald-200">✓</div>
+      <div class="flex-1">
+        <div class="font-semibold text-slate-900">${escapeHtml(title)}</div>
+        <div class="text-sm text-slate-600 leading-6">${escapeHtml(msg)}</div>
+      </div>
+      <button class="h-9 w-9 rounded-xl hover:bg-slate-50 transition grid place-items-center" aria-label="Close">✕</button>
+    `;
+    el.querySelector("button").addEventListener("click", () => el.remove());
+    host.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  const style = document.createElement("style");
+  style.textContent = `@keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}`;
+  document.head.appendChild(style);
+
+  // ---------- Draft ----------
+  function defaultDraft() {
+    return {
+      meta: { status: "draft", lastSavedAt: null, submittedAt: null },
+      ui: { currentStep: 1 },
+      assets: [],
+      accounts: [],
+      properties: [],
+      documents: [], // {id,name,mime,size,dataUrl,uploadedAt}
+    };
+  }
+
+  let draft = readJSON(ESTATE_KEY, defaultDraft());
+
+  function writeDraftSoft() {
+    draft.meta.lastSavedAt = nowISO();
+    writeJSON(ESTATE_KEY, draft);
+    const ls = $("#lastSavedTop");
+    if (ls) ls.textContent = formatNiceDate(draft.meta.lastSavedAt);
+  }
+
+  function saveDraft(silent = false) {
+    writeDraftSoft();
+    if (!silent) toast("Saved", "Your progress has been saved.");
+  }
+
+  // ---------- Modal System (Production-grade, no prompt/confirm) ----------
+  // Requires modal elements in DOM:
+  // #modalBackdrop, #modalTitle, #modalBody, #modalCancel, #modalOk
+  let modalResolve = null;
+// =====================
+// Modal System (matches your HTML)
+// =====================
+
+// helpers assumed in your script:
+// const $ = (sel, root=document)=>root.querySelector(sel);
+// function escapeHtml(str) { ... }
+// function toast(title, msg) { ... }
+
+function setHidden(el, hidden) {
+  if (!el) return;
+  el.classList.toggle("hidden", hidden);
+}
+
+function showErrorModal(msg) {
+  const err = $("#modalError");
+  if (!err) return;
+  err.textContent = msg || "";
+  err.classList.toggle("hidden", !msg);
+}
+
+function lockScroll(lock) {
+  document.body.classList.toggle("overflow-hidden", !!lock);
+}
+
+function animateOpen({ overlay, backdrop, panel }) {
+  setHidden(overlay, false);
+
+  // Start state is already in HTML (backdrop opacity-0, panel translate-y-4 opacity-0)
+  // Next frame -> animate to visible
+  requestAnimationFrame(() => {
+    backdrop?.classList.remove("opacity-0");
+    panel?.classList.remove("translate-y-4", "opacity-0");
+  });
+}
+
+function animateClose({ overlay, backdrop, panel }, done) {
+  backdrop?.classList.add("opacity-0");
+  panel?.classList.add("translate-y-4", "opacity-0");
+
+  // match duration-200
+  setTimeout(() => {
+    setHidden(overlay, true);
+    done?.();
+  }, 200);
+}
+
+// -------- Reusable Modal --------
+let _activeModalCleanup = null;
+
+function openModal({
+  title,
+  subtitle = "",
+  bodyHtml = "",
+  primaryText = "Save",
+  secondaryText = "Cancel",
+  danger = false,
+  closeOnBackdrop = true,
+  closeOnEsc = true,
+  // optional validation callback that runs on primary click
+  // return { ok: true } OR { ok: false, message: "..." }
+  onPrimary = null,
+}) {
+  // Elements
+  const overlay = $("#modalOverlay");
+  const backdrop = $("#modalBackdrop");
+  const panel = $("#modalPanel");
+
+  const mTitle = $("#modalTitle");
+  const mSubtitle = $("#modalSubtitle");
+  const mBody = $("#modalBody");
+  const mErr = $("#modalError");
+
+  const btnClose = $("#modalCloseBtn");
+  const btnSecondary = $("#modalSecondaryBtn");
+  const btnPrimary = $("#modalPrimaryBtn");
+
+  if (!overlay || !backdrop || !panel || !mTitle || !mBody || !btnSecondary || !btnPrimary || !btnClose) {
+    console.error("Modal elements missing. Ensure modal markup exists and IDs match.");
+    return Promise.resolve(null);
+  }
+
+  // If a modal is already open, close it first
+  if (_activeModalCleanup) {
+    _activeModalCleanup();
+    _activeModalCleanup = null;
+  }
+
+  // Populate
+  mTitle.textContent = title || "Modal";
+  mSubtitle.textContent = subtitle || "";
+  mSubtitle.classList.toggle("hidden", !subtitle);
+  mBody.innerHTML = bodyHtml || "";
+  showErrorModal(""); // reset
+
+  btnSecondary.textContent = secondaryText;
+  btnPrimary.textContent = primaryText;
+
+  // Danger styling (toggle classes safely)
+  if (danger) {
+    btnPrimary.classList.remove("bg-slate-900", "hover:bg-slate-800");
+    btnPrimary.classList.add("bg-rose-600", "hover:bg-rose-500");
+  } else {
+    btnPrimary.classList.remove("bg-rose-600", "hover:bg-rose-500");
+    btnPrimary.classList.add("bg-slate-900", "hover:bg-slate-800");
+  }
+
+  // Focus management
+  const previouslyFocused = document.activeElement;
+
+  lockScroll(true);
+  animateOpen({ overlay, backdrop, panel });
+
+  // Focus first meaningful control
+  setTimeout(() => {
+    const focusable =
+      panel.querySelector('[autofocus]') ||
+      panel.querySelector('input, select, textarea, button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
+    (focusable || btnPrimary).focus?.();
+  }, 0);
+
+  return new Promise((resolve) => {
+    let closed = false;
+
+    function cleanupOnly() {
+      // remove listeners
+      btnClose.removeEventListener("click", onCancel);
+      btnSecondary.removeEventListener("click", onCancel);
+      btnPrimary.removeEventListener("click", onOk);
+      backdrop.removeEventListener("click", onBackdrop);
+      document.removeEventListener("keydown", onKeydown);
+
+      // restore focus
+      previouslyFocused?.focus?.();
+
+      lockScroll(false);
+      _activeModalCleanup = null;
     }
 
-    const style = document.createElement("style");
-    style.textContent = `@keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}`;
-    document.head.appendChild(style);
+    function close(result) {
+      if (closed) return;
+      closed = true;
 
-    function defaultDraft() {
-      return {
-        meta: { status: "draft", lastSavedAt: null, submittedAt: null },
-        ui: { currentStep: 1 },
-        assets: [],
-        accounts: [],
-        properties: [],
-        documents: [], // {id,name,mime,size,dataUrl,uploadedAt}
-      };
+      animateClose({ overlay, backdrop, panel }, () => {
+        cleanupOnly();
+        resolve(result);
+      });
     }
 
-    let draft = readJSON(ESTATE_KEY, defaultDraft());
+    async function onOk() {
+      showErrorModal("");
 
-    function saveDraft(silent = false) {
-      draft.meta.lastSavedAt = nowISO();
-      writeJSON(ESTATE_KEY, draft);
-      $("#lastSavedTop").textContent = formatNiceDate(draft.meta.lastSavedAt);
-      if (!silent) toast("Saved", "Your progress has been saved.");
+      if (typeof onPrimary === "function") {
+        try {
+          const res = await onPrimary();
+          if (res && res.ok === false) {
+            showErrorModal(res.message || "Please fix the errors and try again.");
+            return;
+          }
+        } catch (e) {
+          showErrorModal("Something went wrong. Please try again.");
+          return;
+        }
+      }
+
+      close(true);
     }
 
-    function formatNiceDate(iso) {
+    function onCancel() {
+      close(null);
+    }
+
+    function onBackdrop(e) {
+      if (!closeOnBackdrop) return;
+      // close only when clicking the backdrop itself (not the panel)
+      if (e.target === backdrop) onCancel();
+    }
+
+    function onKeydown(e) {
+      if (!closeOnEsc) return;
+      if (e.key === "Escape") onCancel();
+    }
+
+    // bind
+    btnClose.addEventListener("click", onCancel);
+    btnSecondary.addEventListener("click", onCancel);
+    btnPrimary.addEventListener("click", onOk);
+    backdrop.addEventListener("click", onBackdrop);
+    document.addEventListener("keydown", onKeydown);
+
+    // expose cleanup if someone tries to open another modal
+    _activeModalCleanup = () => {
+      // force close immediately without animation to avoid double states
       try {
-        const d = new Date(iso);
-        return d.toLocaleString(undefined, { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
-      } catch { return "Recently"; }
+        setHidden(overlay, true);
+        backdrop.classList.add("opacity-0");
+        panel.classList.add("translate-y-4", "opacity-0");
+      } catch {}
+      cleanupOnly();
+      resolve(null);
+    };
+  });
+}
+
+// -------- Confirm Delete Modal (separate overlay) --------
+let _activeConfirmCleanup = null;
+
+function openConfirmDelete({
+  title = "Confirm delete",
+  message = "Are you sure you want to delete this item?",
+  okText = "Delete",
+  cancelText = "Cancel",
+}) {
+  const overlay = $("#confirmOverlay");
+  const backdrop = $("#confirmBackdrop");
+  const panel = $("#confirmPanel");
+  const cTitle = $("#confirmTitle");
+  const cText = $("#confirmText");
+  const btnCancel = $("#confirmCancelBtn");
+  const btnDelete = $("#confirmDeleteBtn");
+
+  if (!overlay || !backdrop || !panel || !cTitle || !cText || !btnCancel || !btnDelete) {
+    console.error("Confirm modal elements missing. Ensure confirm markup exists and IDs match.");
+    return Promise.resolve(false);
+  }
+
+  if (_activeConfirmCleanup) {
+    _activeConfirmCleanup();
+    _activeConfirmCleanup = null;
+  }
+
+  cTitle.textContent = title;
+  cText.textContent = message;
+  btnCancel.textContent = cancelText;
+  btnDelete.textContent = okText;
+
+  const previouslyFocused = document.activeElement;
+
+  lockScroll(true);
+  animateOpen({ overlay, backdrop, panel });
+
+  setTimeout(() => btnDelete.focus?.(), 0);
+
+  return new Promise((resolve) => {
+    let closed = false;
+
+    function cleanupOnly() {
+      btnCancel.removeEventListener("click", onCancel);
+      btnDelete.removeEventListener("click", onDelete);
+      backdrop.removeEventListener("click", onBackdrop);
+      document.removeEventListener("keydown", onKeydown);
+
+      previouslyFocused?.focus?.();
+      lockScroll(false);
+      _activeConfirmCleanup = null;
     }
 
-    function setStep(step) {
-      draft.ui.currentStep = step;
-      writeDraftSoft();
-      render();
-      // update URL anchor
-      history.replaceState(null, "", `#step-${step}`);
+    function close(result) {
+      if (closed) return;
+      closed = true;
+
+      animateClose({ overlay, backdrop, panel }, () => {
+        cleanupOnly();
+        resolve(result);
+      });
     }
 
-    function writeDraftSoft() {
-      // silent autosave, no toast
-      draft.meta.lastSavedAt = nowISO();
-      writeJSON(ESTATE_KEY, draft);
-      $("#lastSavedTop").textContent = formatNiceDate(draft.meta.lastSavedAt);
-    }
+    function onCancel() { close(false); }
+    function onDelete() { close(true); }
+    function onBackdrop(e) { if (e.target === backdrop) close(false); }
+    function onKeydown(e) { if (e.key === "Escape") close(false); }
 
-    function computeProgress() {
-      // 6 steps; completion is pragmatic:
-      // step2 complete if any assets OR user can intentionally leave empty (we enforce at least one item for MVP)
-      const s2 = draft.assets.length > 0;
-      const s3 = draft.accounts.length > 0;
-      const s4 = draft.properties.length > 0;
-      const s5 = draft.documents.length > 0;
-      const s6 = draft.meta.status === "submitted";
+    btnCancel.addEventListener("click", onCancel);
+    btnDelete.addEventListener("click", onDelete);
+    backdrop.addEventListener("click", onBackdrop);
+    document.addEventListener("keydown", onKeydown);
 
-      let score = 1; // overview
-      if (s2) score++;
-      if (s3) score++;
-      if (s4) score++;
-      if (s5) score++;
-      if (s6) score++;
+    _activeConfirmCleanup = () => {
+      try {
+        setHidden(overlay, true);
+        backdrop.classList.add("opacity-0");
+        panel.classList.add("translate-y-4", "opacity-0");
+      } catch {}
+      cleanupOnly();
+      resolve(false);
+    };
+  });
+}
 
-      return { percent: Math.round((score / 6) * 100), score };
-    }
+// -------- Form Modal helper (uses the reusable modal) --------
+async function openFormModal({
+  title,
+  subtitle = "",
+  fields,
+  primaryText = "Save",
+  secondaryText = "Cancel",
+}) {
+  // fields: [{name,label,type,required,placeholder,help,value}]
+  const bodyHtml = `
+    <form id="modalForm" class="space-y-4">
+      ${fields.map((f) => `
+        <div>
+          <label class="block text-sm font-medium text-slate-900">
+            ${escapeHtml(f.label)}${f.required ? ' <span class="text-rose-600">*</span>' : ''}
+          </label>
+          ${f.help ? `<div class="mt-1 text-xs text-slate-500 leading-5">${escapeHtml(f.help)}</div>` : ""}
+          <input
+            ${f.name === fields[0]?.name ? "autofocus" : ""}
+            name="${escapeHtml(f.name)}"
+            type="${escapeHtml(f.type || "text")}"
+            value="${escapeHtml(f.value || "")}"
+            placeholder="${escapeHtml(f.placeholder || "")}"
+            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 placeholder:text-slate-400
+                   focus:outline-none focus:ring-4 focus:ring-slate-100 focus:border-slate-300"
+          />
+          <div class="mt-1 text-xs text-rose-600 hidden" data-err="${escapeHtml(f.name)}"></div>
+        </div>
+      `).join("")}
+      <button type="submit" class="hidden" aria-hidden="true"></button>
+    </form>
+  `;
 
-    function lockIfSubmitted() {
-      const locked = draft.meta.status === "submitted";
-      // Disable adds & inputs if submitted
-      ["addAssetBtn","addAccountBtn","addPropertyBtn","docInput","saveBtn","nextBtn","prevBtn","exitBtn"].forEach((id) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (id === "prevBtn" || id === "exitBtn") return; // allow navigation/exit
-        el.disabled = locked;
-        el.classList.toggle("opacity-60", locked);
-        el.classList.toggle("cursor-not-allowed", locked);
+  let formRef = null;
+
+  const ok = await openModal({
+    title,
+    subtitle,
+    bodyHtml,
+    primaryText,
+    secondaryText,
+    onPrimary: () => {
+      formRef = $("#modalForm");
+      if (!formRef) return { ok: false, message: "Form not found." };
+
+      // validate
+      let valid = true;
+
+      fields.forEach((f) => {
+        const input = formRef.querySelector(`[name="${CSS.escape(f.name)}"]`);
+        const val = (input?.value || "").trim();
+        const err = formRef.querySelector(`[data-err="${CSS.escape(f.name)}"]`);
+        if (err) { err.classList.add("hidden"); err.textContent = ""; }
+
+        if (f.required && !val) {
+          valid = false;
+          if (err) {
+            err.textContent = "This field is required.";
+            err.classList.remove("hidden");
+          }
+        }
       });
 
-      $("#submitBtn") && ($("#submitBtn").disabled = locked);
-      $("#submitBtn")?.classList.toggle("opacity-60", locked);
-      $("#unlockBtn")?.classList.toggle("hidden", !locked);
-      $("#statusHint").textContent = `Status: ${locked ? "Submitted" : "Draft"}`;
-    }
+      if (!valid) return { ok: false, message: "Please complete the required fields." };
+      return { ok: true };
+    },
+  });
 
-    // ---- Validation per step (MVP) ----
-    function validateStep(step) {
-      clearErrors();
-      if (draft.meta.status === "submitted") return true;
+  if (!ok) return null;
 
-      if (step === 2 && draft.assets.length === 0) {
-        showError("assetsError", "Please add at least one asset to continue.");
-        return false;
-      }
-      if (step === 3 && draft.accounts.length === 0) {
-        showError("accountsError", "Please add at least one account to continue.");
-        return false;
-      }
-      if (step === 4 && draft.properties.length === 0) {
-        showError("propertiesError", "Please add at least one property to continue.");
-        return false;
-      }
-      // documents optional for MVP; keep optional
-      return true;
-    }
+  // collect values
+  const data = {};
+  fields.forEach((f) => {
+    const input = formRef?.querySelector(`[name="${CSS.escape(f.name)}"]`);
+    data[f.name] = (input?.value || "").trim();
+  });
 
-    function showError(id, msg) {
+  return data;
+}
+
+// -------- Replace old prompt/confirm usage --------
+// Use openConfirmDelete(...) instead of confirm(...)
+// Use openFormModal(...) instead of prompt(...)
+  // ---------- Progress ----------
+  function computeProgress() {
+    const s2 = draft.assets.length > 0;
+    const s3 = draft.accounts.length > 0;
+    const s4 = draft.properties.length > 0;
+    const s5 = draft.documents.length > 0;
+    const s6 = draft.meta.status === "submitted";
+
+    let score = 1; // overview
+    if (s2) score++;
+    if (s3) score++;
+    if (s4) score++;
+    if (s5) score++;
+    if (s6) score++;
+
+    return { percent: Math.round((score / 6) * 100), score };
+  }
+
+  function setStep(step) {
+    draft.ui.currentStep = step;
+    writeDraftSoft();
+    render();
+    history.replaceState(null, "", `#step-${step}`);
+  }
+
+  function lockIfSubmitted() {
+    const locked = draft.meta.status === "submitted";
+
+    ["addAssetBtn","addAccountBtn","addPropertyBtn","docInput","saveBtn","nextBtn","prevBtn","exitBtn"].forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.textContent = msg;
-      el.classList.remove("hidden");
-    }
+      if (id === "prevBtn" || id === "exitBtn") return;
+      el.disabled = locked;
+      el.classList.toggle("opacity-60", locked);
+      el.classList.toggle("cursor-not-allowed", locked);
+    });
 
-    function clearErrors() {
-      ["assetsError","accountsError","propertiesError","docsError","docsWarn"].forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) { el.classList.add("hidden"); el.textContent = ""; }
-      });
-    }
+    if ($("#submitBtn")) $("#submitBtn").disabled = locked;
+    $("#submitBtn")?.classList.toggle("opacity-60", locked);
 
-    // ---- Render lists ----
-    function hint(label, text) {
-      return `
-        <span class="relative inline-flex items-center gap-1">
-          <span class="text-xs text-slate-500">${escapeHtml(label)}</span>
-          <span class="group inline-flex items-center justify-center h-5 w-5 rounded-full border border-slate-200 bg-white text-slate-600 text-[11px] cursor-help" tabindex="0" aria-label="Hint">
-            i
-            <span class="pointer-events-none absolute z-10 hidden group-hover:block group-focus:block top-6 left-0 w-64 rounded-2xl border border-slate-200 bg-white shadow-soft p-3 text-xs text-slate-600 leading-5">
-              ${escapeHtml(text)}
-            </span>
+    $("#unlockBtn")?.classList.toggle("hidden", !locked);
+    $("#statusHint").textContent = `Status: ${locked ? "Submitted" : "Draft"}`;
+  }
+
+  // ---------- Validation ----------
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+
+  function clearErrors() {
+    ["assetsError","accountsError","propertiesError","docsError","docsWarn"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add("hidden"); el.textContent = ""; }
+    });
+  }
+
+  function validateStep(step) {
+    clearErrors();
+    if (draft.meta.status === "submitted") return true;
+
+    if (step === 2 && draft.assets.length === 0) {
+      showError("assetsError", "Please add at least one asset to continue.");
+      return false;
+    }
+    if (step === 3 && draft.accounts.length === 0) {
+      showError("accountsError", "Please add at least one account to continue.");
+      return false;
+    }
+    if (step === 4 && draft.properties.length === 0) {
+      showError("propertiesError", "Please add at least one property to continue.");
+      return false;
+    }
+    return true;
+  }
+
+  // ---------- UI Helpers ----------
+  function hint(label, text) {
+    return `
+      <span class="relative inline-flex items-center gap-1">
+        <span class="text-xs text-slate-500">${escapeHtml(label)}</span>
+        <span class="group inline-flex items-center justify-center h-5 w-5 rounded-full border border-slate-200 bg-white text-slate-600 text-[11px] cursor-help" tabindex="0" aria-label="Hint">
+          i
+          <span class="pointer-events-none absolute z-10 hidden group-hover:block group-focus:block top-6 left-0 w-64 rounded-2xl border border-slate-200 bg-white shadow-lg p-3 text-xs text-slate-600 leading-5">
+            ${escapeHtml(text)}
           </span>
         </span>
-      `;
-    }
+      </span>
+    `;
+  }
 
-    function cardRow({ title, subtitle, onEditId, onRemoveId }) {
-      return `
-        <div class="rounded-2xl border border-slate-200 p-4 hover:bg-slate-50 transition">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <div class="font-semibold text-slate-900">${escapeHtml(title)}</div>
-              <div class="text-sm text-slate-600 mt-1">${escapeHtml(subtitle)}</div>
-            </div>
-            <div class="flex gap-2">
-              <button data-edit="${onEditId}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-white transition text-sm">Edit</button>
-              <button data-remove="${onRemoveId}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-white transition text-sm">Remove</button>
-            </div>
+  function cardRow({ title, subtitle, editKey, removeKey }) {
+    const hasEdit = !!editKey;
+    return `
+      <div class="rounded-2xl border border-slate-200 p-4 hover:bg-slate-50 transition">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="font-semibold text-slate-900">${escapeHtml(title)}</div>
+            <div class="text-sm text-slate-600 mt-1">${escapeHtml(subtitle || "")}</div>
+          </div>
+          <div class="flex gap-2">
+            ${hasEdit ? `<button data-edit="${escapeHtml(editKey)}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-white transition text-sm">Edit</button>` : ""}
+            <button data-remove="${escapeHtml(removeKey)}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-white transition text-sm">Remove</button>
           </div>
         </div>
-      `;
-    }
+      </div>
+    `;
+  }
 
-    function renderAssets() {
-      const host = $("#assetsList");
-      host.innerHTML = "";
-      draft.assets.forEach((a) => {
-        host.insertAdjacentHTML("beforeend", cardRow({
-          title: `${a.name} • ${a.category}`,
-          subtitle: `${a.currency || "—"} ${a.value || ""}${a.notes ? " • " + a.notes : ""}`,
-          onEditId: `asset:${a.id}`,
-          onRemoveId: `asset:${a.id}`,
-        }));
+  // ---------- Render lists (NO event listeners here) ----------
+  function renderAssets() {
+    const host = $("#assetsList");
+    host.innerHTML = "";
+    draft.assets.forEach((a) => {
+      host.insertAdjacentHTML("beforeend", cardRow({
+        title: `${a.name} • ${a.category}`,
+        subtitle: `${a.currency || "—"} ${a.value || ""}${a.notes ? " • " + a.notes : ""}`,
+        editKey: `asset:${a.id}`,
+        removeKey: `asset:${a.id}`,
+      }));
+    });
+  }
+
+  function renderAccounts() {
+    const host = $("#accountsList");
+    host.innerHTML = "";
+    draft.accounts.forEach((a) => {
+      const last4 = a.last4 ? `•••• ${a.last4}` : "No last-4";
+      host.insertAdjacentHTML("beforeend", cardRow({
+        title: `${a.institution} • ${a.accountType}`,
+        subtitle: `${last4}${a.notes ? " • " + a.notes : ""}`,
+        editKey: `account:${a.id}`,
+        removeKey: `account:${a.id}`,
+      }));
+    });
+  }
+
+  function renderProperties() {
+    const host = $("#propertiesList");
+    host.innerHTML = "";
+    draft.properties.forEach((p) => {
+      host.insertAdjacentHTML("beforeend", cardRow({
+        title: `${p.type} • ${p.country}`,
+        subtitle: `${p.address}${p.titleDeedRef ? " • Deed: " + p.titleDeedRef : ""}`,
+        editKey: `property:${p.id}`,
+        removeKey: `property:${p.id}`,
+      }));
+    });
+  }
+
+  function renderDocs() {
+    const host = $("#docsList");
+    host.innerHTML = "";
+
+    draft.documents.forEach((d) => {
+      host.insertAdjacentHTML("beforeend", cardRow({
+        title: d.name,
+        subtitle: `${(d.size/1024).toFixed(1)} KB • ${d.mime} • ${formatNiceDate(d.uploadedAt)}`,
+        editKey: "", // no edit in MVP for docs
+        removeKey: `doc:${d.id}`,
+      }));
+    });
+
+    // remove empty edit buttons (if any)
+    host.querySelectorAll('[data-edit=""]').forEach((btn) => btn.remove());
+  }
+
+  function renderReview() {
+    const box = $("#reviewBox");
+    const { percent } = computeProgress();
+    box.innerHTML = `
+      <div class="rounded-2xl border border-slate-200 p-4">
+        <div class="text-sm text-slate-500">Assets</div>
+        <div class="mt-1 text-2xl font-semibold">${draft.assets.length}</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 p-4">
+        <div class="text-sm text-slate-500">Accounts</div>
+        <div class="mt-1 text-2xl font-semibold">${draft.accounts.length}</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 p-4">
+        <div class="text-sm text-slate-500">Properties</div>
+        <div class="mt-1 text-2xl font-semibold">${draft.properties.length}</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 p-4">
+        <div class="text-sm text-slate-500">Documents</div>
+        <div class="mt-1 text-2xl font-semibold">${draft.documents.length}</div>
+      </div>
+      <div class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 leading-6">
+        <div class="font-semibold text-slate-900">Completion</div>
+        <div class="mt-1">${percent}% complete. You can submit now, or continue improving accuracy.</div>
+      </div>
+    `;
+  }
+
+  function render() {
+    const step = draft.ui.currentStep || 1;
+
+    // panels
+    $$(".stepPanel").forEach((p) => p.classList.add("hidden"));
+    $(`.stepPanel[data-panel="${step}"]`)?.classList.remove("hidden");
+
+    // stepper highlight
+    $$(".stepBtn").forEach((b) => {
+      const s = Number(b.getAttribute("data-step"));
+      const active = s === step;
+      b.classList.toggle("bg-slate-900", active);
+      b.classList.toggle("text-white", active);
+      b.classList.toggle("hover:bg-slate-50", !active);
+    });
+
+    const titles = {
+      1: ["Step 1: Overview", "What you’ll provide and how we handle it."],
+      2: ["Step 2: Assets", "Add valuables, investments, or other major assets."],
+      3: ["Step 3: Accounts", "Record financial and digital accounts."],
+      4: ["Step 4: Property", "Capture property details and references."],
+      5: ["Step 5: Documents", "Upload PDFs/DOCX supporting your entries."],
+      6: ["Step 6: Review & submit", "Confirm and submit your intake."],
+    };
+    $("#stepTitle").textContent = titles[step][0];
+    $("#stepSub").textContent = titles[step][1];
+
+    // progress
+    const { percent } = computeProgress();
+    $("#progressBar").style.width = `${percent}%`;
+    $("#progressLabel").textContent = `${percent}%`;
+    $("#progressHint").textContent = `Step ${step} of 6`;
+
+    $("#lastSavedTop").textContent =
+      draft.meta.lastSavedAt ? formatNiceDate(draft.meta.lastSavedAt) : "Not yet";
+
+    // render lists
+    if (step === 2) renderAssets();
+    if (step === 3) renderAccounts();
+    if (step === 4) renderProperties();
+    if (step === 5) renderDocs();
+    if (step === 6) renderReview();
+
+    lockIfSubmitted();
+  }
+
+  // ---------- CRUD via Modals ----------
+  async function addAsset() {
+    const data = await openFormModal({
+      title: "Add Asset",
+      fields: [
+        { name: "name", label: "Asset name", required: true, placeholder: "e.g., Toyota Corolla" },
+        { name: "category", label: "Category", required: true, placeholder: "e.g., Vehicle, Investment" },
+        { name: "value", label: "Estimated value", required: false, placeholder: "e.g., 2500000" },
+        { name: "currency", label: "Currency", required: false, placeholder: "e.g., NGN, USD, GBP" },
+        { name: "notes", label: "Notes", required: false, placeholder: "Any additional context" },
+      ],
+      okText: "Add asset",
+    });
+    if (!data) return;
+
+    draft.assets.push({
+      id: crypto.randomUUID(),
+      name: data.name,
+      category: data.category,
+      value: data.value || "",
+      currency: data.currency || "",
+      notes: data.notes || "",
+      updatedAt: nowISO(),
+    });
+
+    writeDraftSoft();
+    render();
+    toast("Added", "Asset added to your intake.");
+  }
+
+  async function addAccount() {
+    const data = await openFormModal({
+      title: "Add Account",
+      fields: [
+        { name: "institution", label: "Institution", required: true, placeholder: "e.g., GTBank, PayPal" },
+        { name: "accountType", label: "Account type", required: true, placeholder: "e.g., Savings, Crypto, Email" },
+        { name: "last4", label: "Last 4 digits (optional)", required: false, placeholder: "e.g., 1234", help: "Do not store full account numbers in MVP." },
+        { name: "notes", label: "Notes", required: false, placeholder: "Any access instructions or context" },
+      ],
+      okText: "Add account",
+    });
+    if (!data) return;
+
+    draft.accounts.push({
+      id: crypto.randomUUID(),
+      institution: data.institution,
+      accountType: data.accountType,
+      last4: data.last4 || "",
+      notes: data.notes || "",
+      updatedAt: nowISO(),
+    });
+
+    writeDraftSoft();
+    render();
+    toast("Added", "Account added to your intake.");
+  }
+
+  async function addProperty() {
+    const data = await openFormModal({
+      title: "Add Property",
+      fields: [
+        { name: "type", label: "Property type", required: true, placeholder: "e.g., House, Land" },
+        { name: "address", label: "Address", required: true, placeholder: "Full address" },
+        { name: "country", label: "Country", required: true, placeholder: "e.g., Nigeria" },
+        { name: "titleDeedRef", label: "Title deed reference", required: false, placeholder: "e.g., Deed-ABC-123" },
+        { name: "notes", label: "Notes", required: false, placeholder: "Any additional details" },
+      ],
+      okText: "Add property",
+    });
+    if (!data) return;
+
+    draft.properties.push({
+      id: crypto.randomUUID(),
+      type: data.type,
+      address: data.address,
+      country: data.country,
+      titleDeedRef: data.titleDeedRef || "",
+      notes: data.notes || "",
+      updatedAt: nowISO(),
+    });
+
+    writeDraftSoft();
+    render();
+    toast("Added", "Property added to your intake.");
+  }
+
+  // ---------- Delegated list actions (ONE handler for all lists) ----------
+  async function onListClick(e) {
+    const removeBtn = e.target.closest("[data-remove]");
+    if (removeBtn) {
+      const key = removeBtn.getAttribute("data-remove");
+      const [type, id] = key.split(":");
+
+      const ok = await openConfirmDelete({
+        title: "Remove item?",
+        message: "This will remove the item from your draft. You can add it back later.",
+        okText: "Remove",
+        cancelText: "Cancel",
+        danger: true,
       });
-      host.addEventListener("click", onListClick);
-    }
+      if (!ok) return;
 
-    function renderAccounts() {
-      const host = $("#accountsList");
-      host.innerHTML = "";
-      draft.accounts.forEach((a) => {
-        const last4 = a.last4 ? `•••• ${a.last4}` : "No last-4";
-        host.insertAdjacentHTML("beforeend", cardRow({
-          title: `${a.institution} • ${a.accountType}`,
-          subtitle: `${last4}${a.notes ? " • " + a.notes : ""}`,
-          onEditId: `account:${a.id}`,
-          onRemoveId: `account:${a.id}`,
-        }));
-      });
-      host.addEventListener("click", onListClick);
-    }
+      if (type === "asset") draft.assets = draft.assets.filter((x) => x.id !== id);
+      if (type === "account") draft.accounts = draft.accounts.filter((x) => x.id !== id);
+      if (type === "property") draft.properties = draft.properties.filter((x) => x.id !== id);
+      if (type === "doc") draft.documents = draft.documents.filter((x) => x.id !== id);
 
-    function renderProperties() {
-      const host = $("#propertiesList");
-      host.innerHTML = "";
-      draft.properties.forEach((p) => {
-        host.insertAdjacentHTML("beforeend", cardRow({
-          title: `${p.type} • ${p.country}`,
-          subtitle: `${p.address}${p.titleDeedRef ? " • Deed: " + p.titleDeedRef : ""}`,
-          onEditId: `property:${p.id}`,
-          onRemoveId: `property:${p.id}`,
-        }));
-      });
-      host.addEventListener("click", onListClick);
-    }
-
-    function renderDocs() {
-      const host = $("#docsList");
-      host.innerHTML = "";
-      draft.documents.forEach((d) => {
-        host.insertAdjacentHTML("beforeend", `
-          <div class="rounded-2xl border border-slate-200 p-4 flex items-start justify-between gap-3">
-            <div>
-              <div class="font-semibold text-slate-900">${escapeHtml(d.name)}</div>
-              <div class="text-sm text-slate-600 mt-1">
-                ${(d.size/1024).toFixed(1)} KB • ${escapeHtml(d.mime)} • ${formatNiceDate(d.uploadedAt)}
-              </div>
-            </div>
-            <button data-remove="doc:${d.id}" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-sm">Remove</button>
-          </div>
-        `);
-      });
-      host.addEventListener("click", onListClick);
-    }
-
-    function renderReview() {
-      const box = $("#reviewBox");
-      const { percent } = computeProgress();
-      box.innerHTML = `
-        <div class="rounded-2xl border border-slate-200 p-4">
-          <div class="text-sm text-slate-500">Assets</div>
-          <div class="mt-1 text-2xl font-semibold">${draft.assets.length}</div>
-        </div>
-        <div class="rounded-2xl border border-slate-200 p-4">
-          <div class="text-sm text-slate-500">Accounts</div>
-          <div class="mt-1 text-2xl font-semibold">${draft.accounts.length}</div>
-        </div>
-        <div class="rounded-2xl border border-slate-200 p-4">
-          <div class="text-sm text-slate-500">Properties</div>
-          <div class="mt-1 text-2xl font-semibold">${draft.properties.length}</div>
-        </div>
-        <div class="rounded-2xl border border-slate-200 p-4">
-          <div class="text-sm text-slate-500">Documents</div>
-          <div class="mt-1 text-2xl font-semibold">${draft.documents.length}</div>
-        </div>
-        <div class="sm:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 leading-6">
-          <div class="font-semibold text-slate-900">Completion</div>
-          <div class="mt-1">${percent}% complete. You can submit now, or continue improving accuracy.</div>
-        </div>
-      `;
-    }
-
-    function render() {
-      // panels
-      const step = draft.ui.currentStep || 1;
-      $$(".stepPanel").forEach((p) => p.classList.add("hidden"));
-      $(`.stepPanel[data-panel="${step}"]`)?.classList.remove("hidden");
-
-      // stepper highlight
-      $$(".stepBtn").forEach((b) => {
-        const s = Number(b.getAttribute("data-step"));
-        const active = s === step;
-        b.classList.toggle("bg-slate-900", active);
-        b.classList.toggle("text-white", active);
-        b.classList.toggle("hover:bg-slate-50", !active);
-      });
-
-      const titles = {
-        1: ["Step 1: Overview", "What you’ll provide and how we handle it."],
-        2: ["Step 2: Assets", "Add valuables, investments, or other major assets."],
-        3: ["Step 3: Accounts", "Record financial and digital accounts."],
-        4: ["Step 4: Property", "Capture property details and references."],
-        5: ["Step 5: Documents", "Upload PDFs/DOCX supporting your entries."],
-        6: ["Step 6: Review & submit", "Confirm and submit your intake."],
-      };
-      $("#stepTitle").textContent = titles[step][0];
-      $("#stepSub").textContent = titles[step][1];
-
-      // progress
-      const { percent } = computeProgress();
-      $("#progressBar").style.width = `${percent}%`;
-      $("#progressLabel").textContent = `${percent}%`;
-      $("#progressHint").textContent = `Step ${step} of 6`;
-
-      $("#lastSavedTop").textContent = draft.meta.lastSavedAt ? formatNiceDate(draft.meta.lastSavedAt) : "Not yet";
-
-      // render lists
-      if (step === 2) renderAssets();
-      if (step === 3) renderAccounts();
-      if (step === 4) renderProperties();
-      if (step === 5) renderDocs();
-      if (step === 6) renderReview();
-
-      lockIfSubmitted();
-    }
-
-    // ---- CRUD Modals (simple prompt-based for MVP; upgrade to real modal later) ----
-    function addAsset() {
-      const name = prompt("Asset name (required):");
-      if (!name) return;
-      const category = prompt("Category (e.g., Vehicle, Investment) (required):");
-      if (!category) return;
-      const value = prompt("Estimated value (optional):") || "";
-      const currency = prompt("Currency (e.g., USD, NGN, GBP) (optional):") || "";
-      const notes = prompt("Notes (optional):") || "";
-
-      draft.assets.push({ id: crypto.randomUUID(), name, category, value, currency, notes, updatedAt: nowISO() });
       writeDraftSoft();
       render();
+      toast("Removed", "Item removed.");
+      return;
     }
 
-    function addAccount() {
-      const institution = prompt("Institution (required):");
-      if (!institution) return;
-      const accountType = prompt("Account type (required):");
-      if (!accountType) return;
-      const last4 = prompt("Last 4 digits (optional):") || "";
-      const notes = prompt("Notes (optional):") || "";
+    const editBtn = e.target.closest("[data-edit]");
+    if (editBtn) {
+      const key = editBtn.getAttribute("data-edit");
+      if (!key) return;
+      const [type, id] = key.split(":");
 
-      draft.accounts.push({ id: crypto.randomUUID(), institution, accountType, last4, notes, updatedAt: nowISO() });
-      writeDraftSoft();
-      render();
-    }
+      if (type === "asset") {
+        const item = draft.assets.find((x) => x.id === id);
+        if (!item) return;
 
-    function addProperty() {
-      const type = prompt("Property type (required):");
-      if (!type) return;
-      const address = prompt("Address (required):");
-      if (!address) return;
-      const country = prompt("Country (required):");
-      if (!country) return;
-      const titleDeedRef = prompt("Title deed reference (optional):") || "";
-      const notes = prompt("Notes (optional):") || "";
+        const data = await openFormModal({
+          title: "Edit Asset",
+          fields: [
+            { name: "name", label: "Asset name", required: true, placeholder: "", help: "Update the item name." },
+            { name: "category", label: "Category", required: true, placeholder: "" },
+            { name: "value", label: "Estimated value", required: false, placeholder: "" },
+            { name: "currency", label: "Currency", required: false, placeholder: "" },
+            { name: "notes", label: "Notes", required: false, placeholder: "" },
+          ],
+          okText: "Save changes",
+        });
+        if (!data) return;
 
-      draft.properties.push({ id: crypto.randomUUID(), type, address, country, titleDeedRef, notes, updatedAt: nowISO() });
-      writeDraftSoft();
-      render();
-    }
-
-    function onListClick(e) {
-      const btnRemove = e.target.closest("[data-remove]");
-      if (btnRemove) {
-        const key = btnRemove.getAttribute("data-remove");
-        const [type, id] = key.split(":");
-        if (!confirm("Remove this item?")) return;
-
-        if (type === "asset") draft.assets = draft.assets.filter((x) => x.id !== id);
-        if (type === "account") draft.accounts = draft.accounts.filter((x) => x.id !== id);
-        if (type === "property") draft.properties = draft.properties.filter((x) => x.id !== id);
-        if (type === "doc") draft.documents = draft.documents.filter((x) => x.id !== id);
-
-        writeDraftSoft();
-        render();
-      }
-    }
-
-    // ---- Documents upload ----
-    const MAX_TOTAL_BYTES = 3.5 * 1024 * 1024; // ~3.5MB guardrail for localStorage safety
-
-    function totalDocBytes() {
-      return (draft.documents || []).reduce((sum, d) => sum + (d.size || 0), 0);
-    }
-
-    async function fileToDataUrl(file) {
-      return new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result));
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-    }
-
-    $("#docInput")?.addEventListener("change", async (e) => {
-      clearErrors();
-      const files = Array.from(e.target.files || []);
-      if (!files.length) return;
-
-      for (const file of files) {
-        const okTypes = [
-          "application/pdf",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ];
-        const extOk = /\.(pdf|doc|docx)$/i.test(file.name);
-
-        if (!okTypes.includes(file.type) && !extOk) {
-          showError("docsError", "Only PDF/DOC/DOCX files are allowed.");
-          continue;
-        }
-
-        const nextTotal = totalDocBytes() + file.size;
-        if (nextTotal > MAX_TOTAL_BYTES) {
-          const warn = $("#docsWarn");
-          warn.textContent = "Storage limit warning: this MVP stores files locally. Please upload fewer/smaller documents.";
-          warn.classList.remove("hidden");
-          break;
-        }
-
-        const dataUrl = await fileToDataUrl(file);
-        draft.documents.push({
-          id: crypto.randomUUID(),
-          name: file.name,
-          mime: file.type || "application/octet-stream",
-          size: file.size,
-          dataUrl,
-          uploadedAt: nowISO(),
+        Object.assign(item, {
+          name: data.name,
+          category: data.category,
+          value: data.value || "",
+          currency: data.currency || "",
+          notes: data.notes || "",
+          updatedAt: nowISO(),
         });
 
         writeDraftSoft();
-      }
-
-      e.target.value = "";
-      render();
-      toast("Uploaded", "Document(s) added to your intake.");
-    });
-
-    // ---- Nav buttons ----
-    $("#prevBtn").addEventListener("click", () => {
-      const step = draft.ui.currentStep || 1;
-      if (step > 1) setStep(step - 1);
-    });
-
-    $("#nextBtn").addEventListener("click", () => {
-      const step = draft.ui.currentStep || 1;
-      if (!validateStep(step)) return;
-      if (step < 6) setStep(step + 1);
-    });
-
-    $$(".stepBtn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const step = Number(btn.getAttribute("data-step"));
-        // allow jump, but validate current step before leaving forward
-        const current = draft.ui.currentStep || 1;
-        if (step > current && !validateStep(current)) return;
-        setStep(step);
-      });
-    });
-
-    // Buttons
-    $("#addAssetBtn")?.addEventListener("click", addAsset);
-    $("#addAccountBtn")?.addEventListener("click", addAccount);
-    $("#addPropertyBtn")?.addEventListener("click", addProperty);
-
-    $("#saveBtn")?.addEventListener("click", () => saveDraft(false));
-    $("#exitBtn")?.addEventListener("click", () => {
-      saveDraft(true);
-      toast("Saved", "Returning to dashboard…");
-      setTimeout(() => (window.location.href = "index.html"), 450);
-    });
-
-    $("#submitBtn")?.addEventListener("click", () => {
-      // Final validations
-      if (draft.assets.length === 0 || draft.accounts.length === 0 || draft.properties.length === 0) {
-        toast("Missing information", "Please add at least one item in Assets, Accounts, and Property before submitting.");
+        render();
+        toast("Updated", "Asset updated.");
         return;
       }
-      if (!confirm("Submit estate intake? This will lock this version in MVP.")) return;
-      draft.meta.status = "submitted";
-      draft.meta.submittedAt = nowISO();
+
+      if (type === "account") {
+        const item = draft.accounts.find((x) => x.id === id);
+        if (!item) return;
+
+        const data = await openFormModal({
+          title: "Edit Account",
+          fields: [
+            { name: "institution", label: "Institution", required: true, placeholder: "" },
+            { name: "accountType", label: "Account type", required: true, placeholder: "" },
+            { name: "last4", label: "Last 4 digits", required: false, placeholder: "", help: "Do not store full numbers." },
+            { name: "notes", label: "Notes", required: false, placeholder: "" },
+          ],
+          okText: "Save changes",
+        });
+        if (!data) return;
+
+        Object.assign(item, {
+          institution: data.institution,
+          accountType: data.accountType,
+          last4: data.last4 || "",
+          notes: data.notes || "",
+          updatedAt: nowISO(),
+        });
+
+        writeDraftSoft();
+        render();
+        toast("Updated", "Account updated.");
+        return;
+      }
+
+      if (type === "property") {
+        const item = draft.properties.find((x) => x.id === id);
+        if (!item) return;
+
+        const data = await openFormModal({
+          title: "Edit Property",
+          fields: [
+            { name: "type", label: "Property type", required: true, placeholder: "" },
+            { name: "address", label: "Address", required: true, placeholder: "" },
+            { name: "country", label: "Country", required: true, placeholder: "" },
+            { name: "titleDeedRef", label: "Title deed reference", required: false, placeholder: "" },
+            { name: "notes", label: "Notes", required: false, placeholder: "" },
+          ],
+          okText: "Save changes",
+        });
+        if (!data) return;
+
+        Object.assign(item, {
+          type: data.type,
+          address: data.address,
+          country: data.country,
+          titleDeedRef: data.titleDeedRef || "",
+          notes: data.notes || "",
+          updatedAt: nowISO(),
+        });
+
+        writeDraftSoft();
+        render();
+        toast("Updated", "Property updated.");
+        return;
+      }
+    }
+  }
+
+  // Bind delegated handlers ONCE (critical)
+  function bindOnce() {
+    $("#assetsList")?.addEventListener("click", onListClick);
+    $("#accountsList")?.addEventListener("click", onListClick);
+    $("#propertiesList")?.addEventListener("click", onListClick);
+    $("#docsList")?.addEventListener("click", onListClick);
+  }
+
+  // ---------- Documents upload ----------
+  const MAX_TOTAL_BYTES = 3.5 * 1024 * 1024; // localStorage guardrail
+
+  function totalDocBytes() {
+    return (draft.documents || []).reduce((sum, d) => sum + (d.size || 0), 0);
+  }
+
+  async function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  $("#docInput")?.addEventListener("change", async (e) => {
+    clearErrors();
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    for (const file of files) {
+      const okTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      const extOk = /\.(pdf|doc|docx)$/i.test(file.name);
+
+      if (!okTypes.includes(file.type) && !extOk) {
+        showError("docsError", "Only PDF/DOC/DOCX files are allowed.");
+        continue;
+      }
+
+      const nextTotal = totalDocBytes() + file.size;
+      if (nextTotal > MAX_TOTAL_BYTES) {
+        const warn = $("#docsWarn");
+        warn.textContent = "Storage limit warning: this MVP stores files locally. Upload fewer/smaller documents.";
+        warn.classList.remove("hidden");
+        break;
+      }
+
+      const dataUrl = await fileToDataUrl(file);
+      draft.documents.push({
+        id: crypto.randomUUID(),
+        name: file.name,
+        mime: file.type || "application/octet-stream",
+        size: file.size,
+        dataUrl,
+        uploadedAt: nowISO(),
+      });
+
       writeDraftSoft();
-      render();
-      toast("Submitted", "Your estate intake has been submitted (MVP).");
+    }
+
+    e.target.value = "";
+    render();
+    toast("Uploaded", "Document(s) added to your intake.");
+  });
+
+  // ---------- Nav buttons ----------
+  $("#prevBtn")?.addEventListener("click", () => {
+    const step = draft.ui.currentStep || 1;
+    if (step > 1) setStep(step - 1);
+  });
+
+  $("#nextBtn")?.addEventListener("click", () => {
+    const step = draft.ui.currentStep || 1;
+    if (!validateStep(step)) return;
+    if (step < 6) setStep(step + 1);
+  });
+
+  $$(".stepBtn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const step = Number(btn.getAttribute("data-step"));
+      const current = draft.ui.currentStep || 1;
+      if (step > current && !validateStep(current)) return;
+      setStep(step);
     });
+  });
 
-    $("#unlockBtn")?.addEventListener("click", () => {
-      if (!confirm("Create a new editable version? This will duplicate your submitted version as a new draft.")) return;
-      const clone = structuredClone(draft);
-      clone.meta.status = "draft";
-      clone.meta.submittedAt = null;
-      clone.meta.lastSavedAt = nowISO();
-      // keep current step
-      writeJSON(ESTATE_KEY, clone);
-      draft = clone;
-      render();
-      toast("New version created", "You can now edit and resubmit.");
+  $("#addAssetBtn")?.addEventListener("click", addAsset);
+  $("#addAccountBtn")?.addEventListener("click", addAccount);
+  $("#addPropertyBtn")?.addEventListener("click", addProperty);
+
+  $("#saveBtn")?.addEventListener("click", () => saveDraft(false));
+
+  $("#exitBtn")?.addEventListener("click", async () => {
+    saveDraft(true);
+    toast("Saved", "Returning to dashboard…");
+    setTimeout(() => (window.location.href = "index.html"), 450);
+  });
+
+  $("#submitBtn")?.addEventListener("click", async () => {
+    if (draft.assets.length === 0 || draft.accounts.length === 0 || draft.properties.length === 0) {
+      toast("Missing information", "Add at least one item in Assets, Accounts, and Property before submitting.");
+      return;
+    }
+
+    const ok = await openConfirmDelete({
+      title: "Submit estate intake?",
+      message: "This will lock this version in the MVP. You can still create a new editable version afterward.",
+      okText: "Submit",
+      cancelText: "Cancel",
+      danger: false,
     });
+    if (!ok) return;
 
-    // Anchor start step
-    (function initFromHash() {
-      const hash = location.hash || "";
-      const m = hash.match(/step-(\d+)/);
-      const step = m ? Number(m[1]) : (draft.ui.currentStep || 1);
-      draft.ui.currentStep = Math.min(Math.max(step, 1), 6);
-      render();
-    })();
+    draft.meta.status = "submitted";
+    draft.meta.submittedAt = nowISO();
+    writeDraftSoft();
+    render();
+    toast("Submitted", "Your estate intake has been submitted (MVP).");
+  });
 
-    // Auto-save debounce for future inline inputs (if you replace prompts with real forms)
-    // For now, prompts + upload already save.
-  </script>
+  $("#unlockBtn")?.addEventListener("click", async () => {
+    const ok = await openConfirmDelete({
+      title: "Create a new editable version?",
+      message: "This duplicates your submitted version as a new draft you can edit and resubmit.",
+      okText: "Create new draft",
+      cancelText: "Cancel",
+      danger: false,
+    });
+    if (!ok) return;
+
+    const clone = structuredClone(draft);
+    clone.meta.status = "draft";
+    clone.meta.submittedAt = null;
+    clone.meta.lastSavedAt = nowISO();
+
+    writeJSON(ESTATE_KEY, clone);
+    draft = clone;
+    render();
+    toast("New version created", "You can now edit and resubmit.");
+  });
+
+  // ---------- Init from hash + bind once ----------
+  (function init() {
+    const hash = location.hash || "";
+    const m = hash.match(/step-(\d+)/);
+    const step = m ? Number(m[1]) : (draft.ui.currentStep || 1);
+    draft.ui.currentStep = Math.min(Math.max(step, 1), 6);
+
+    bindOnce();
+    render();
+  })();
+</script>
 </body>
 </html>

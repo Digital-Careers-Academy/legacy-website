@@ -160,7 +160,7 @@ function headerHTML() {
   return `
 <header id="appHeader"
   class="fixed w-full py-2 top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200 transition-all duration-300">
-    <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto max-w-7xl px-4">
       <div class="h-16 flex items-center justify-between gap-3">
         <a href="./index.html" class="flex items-center gap-3">
         <div class="flex items-center gap-3">
