@@ -113,7 +113,7 @@ function initSignup() {
 
     // Welcome (signup)
     toast("Welcome", `Welcome, ${firstNameFromName(res.user.name)}.`);
-    window.location.href = "/dashboard/index.html";
+    window.location.href = "/legacy-website/dashboard/index.html";
   });
 }
 
@@ -156,7 +156,7 @@ function initLogin() {
     toast("Welcome back", `Welcome back, ${firstNameFromName(res.user.name)}.`);
     const after = sessionStorage.getItem("hl_redirect_after_login");
     sessionStorage.removeItem("hl_redirect_after_login");
-    window.location.href = after || "/dashboard/index.html";
+    window.location.href = after || "/legacy-website/dashboard/index.html";
   });
 }
 
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // If already logged in, skip auth pages
   const u = getCurrentUser();
   if (u && (document.querySelector("#loginForm") || document.querySelector("#signupForm"))) {
-    window.location.href = "/dashboard/index.html";
+    window.location.href = "/legacy-website/dashboard/index.html";
     return;
   }
 
