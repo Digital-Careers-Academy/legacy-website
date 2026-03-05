@@ -257,12 +257,6 @@ function initStickyHeaderShadow() {
   window.addEventListener("scroll", onScroll, { passive: true });
 }
 
-function setWelcomeName() {
-  const u = readJSON(LS_KEYS.user, { firstName: "User" });
-  const el = $("#welcomeName");
-  if (el) el.textContent = u.firstName ? `Welcome back, ${u.firstName}` : "Welcome back";
-}
-
 function setKPIs() {
   const vault = readJSON(LS_KEYS.vault, []);
   const contacts = readJSON(LS_KEYS.contacts, []);
@@ -405,7 +399,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initStickyHeaderShadow();
   initNotifications();
-  setWelcomeName();
   initAutosavePulse();
 
   // detect page

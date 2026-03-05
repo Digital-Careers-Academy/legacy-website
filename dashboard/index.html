@@ -11,6 +11,8 @@
     tailwind.config = { theme: { extend: { boxShadow: { soft: "0 10px 30px rgba(2,6,23,.08)" } } } }
   </script>
 
+  <script defer src="../assets/js/auth.js"></script>
+<script defer src="../assets/js/auth-dashboard.js"></script>
   <script defer src="../assets/js/dashboard.js"></script>
 </head>
 
@@ -113,7 +115,7 @@
               ☰
             </button>
             <div>
-              <div id="welcomeName" class="text-lg font-semibold tracking-tight">Welcome back</div>
+              <div id="welcomeName" class="text-lg font-semibold tracking-tight">Welcome </div>
               <div class="text-sm text-slate-500">Here’s what’s happening with your legacy setup.</div>
             </div>
           </div>
@@ -149,6 +151,10 @@
                class="hidden sm:inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-white font-medium hover:bg-slate-800 transition">
               Open Vault →
             </a>
+              <button id="logoutBtn"
+    class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+    Logout
+  </button>
           </div>
         </div>
       </header>

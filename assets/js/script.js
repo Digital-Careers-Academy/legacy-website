@@ -354,93 +354,7 @@ function initContact() {
   }
 }
 
-function initSignup() {
-  const form = $("#signupForm");
-  if (!form) return;
 
-  const pass = $("#sPass");
-  const pass2 = $("#sPass2");
-  const hint = $("#passHint");
-
-  function validatePassword(p) {
-    const rules = [
-      { ok: p.length >= 8, msg: "8+ characters" },
-      { ok: /[A-Z]/.test(p), msg: "Uppercase letter" },
-      { ok: /[a-z]/.test(p), msg: "Lowercase letter" },
-      { ok: /\d/.test(p), msg: "Number" },
-      { ok: /[^A-Za-z0-9]/.test(p), msg: "Special character" },
-    ];
-    return { ok: rules.every((r) => r.ok), rules };
-  }
-
-  function paintHint() {
-    const v = validatePassword(pass.value);
-    hint.textContent = v.rules.map((r) => (r.ok ? "✓ " : "• ") + r.msg).join("   ");
-    hint.className = v.ok ? "text-xs text-emerald-700" : "text-xs text-slate-500";
-  }
-
-  pass?.addEventListener("input", paintHint);
-  paintHint();
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const first = $("#sFirst");
-    const last = $("#sLast");
-    const email = $("#sEmail");
-
-    [first, last, email, pass, pass2].forEach((el) => setFieldError(el, ""));
-
-    let ok = true;
-    if (!first.value.trim()) (setFieldError(first, "This field is required"), (ok = false));
-    if (!last.value.trim()) (setFieldError(last, "This field is required"), (ok = false));
-    if (!email.value.trim()) (setFieldError(email, "This field is required"), (ok = false));
-    if (email.value.trim() && !isEmail(email.value)) (setFieldError(email, "Please enter a valid email address"), (ok = false));
-
-    const pv = validatePassword(pass.value);
-    if (!pv.ok) (setFieldError(pass, "Password does not meet requirements"), (ok = false));
-    if (pass.value !== pass2.value) (setFieldError(pass2, "Passwords do not match"), (ok = false));
-
-    if (!ok) {
-      showToast({ title: "Sign up failed", message: "Please correct the highlighted fields.", type: "error" });
-      return;
-    }
-
-    // Demo success + redirect to confirm page
-    showToast({ title: "Sign up successful", message: "A confirmation email would be sent in production.", type: "success" });
-
-    setTimeout(() => {
-      window.location.href = "./confirm.html";
-    }, 700);
-  });
-}
-
-function initLogin() {
-  const form = $("#loginForm");
-  if (!form) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = $("#lEmail");
-    const pass = $("#lPass");
-
-    [email, pass].forEach((el) => setFieldError(el, ""));
-    let ok = true;
-
-    if (!email.value.trim()) (setFieldError(email, "This field is required"), (ok = false));
-    if (email.value.trim() && !isEmail(email.value)) (setFieldError(email, "Email address is invalid"), (ok = false));
-
-    if (!pass.value.trim()) (setFieldError(pass, "This field is required"), (ok = false));
-
-    if (!ok) {
-      showToast({ title: "Login failed", message: "Please correct the highlighted fields.", type: "error" });
-      return;
-    }
-
-    showToast({ title: "Signed in (demo)", message: "Next step: connect backend auth.", type: "success" });
-    form.reset();
-  });
-}
 
 function initFAQ() {
   // accessible accordion
@@ -461,8 +375,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setYear();
 
   initContact();
-  initSignup();
-  initLogin();
   initFAQ();
   initCookies();
 });
