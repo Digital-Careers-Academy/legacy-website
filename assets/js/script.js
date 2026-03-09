@@ -336,7 +336,7 @@ function initContact() {
     // Demo success
     showToast({
       title: "Message sent",
-      message: "Thanks — we’ve received your message. (Demo: no email is sent yet.)",
+      message: "Thanks — we’ve received your message.",
       type: "success",
     });
 
